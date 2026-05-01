@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة تحكم إفادة</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #21253a;
+      --border: #2a2f45;
+      --accent: #5b6af0;
+      --accent-light: #7a87f7;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --gold: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', 'Cairo', Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Header ===== */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .logo-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bot-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.offline { background: var(--red); box-shadow: 0 0 6px var(--red); animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ===== Stats ===== */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding: 20px 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.total { background: rgba(91,106,240,0.15); }
+    .stat-icon.active { background: rgba(34,197,94,0.15); }
+    .stat-icon.paused { background: rgba(59,130,246,0.15); }
+
+    .stat-info h3 {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ===== Main Layout ===== */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 0;
+      flex: 1;
+      overflow: hidden;
+      padding: 0 28px 28px;
+      gap: 20px;
+    }
+
+    /* ===== Clients Panel ===== */
+    .clients-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-header h2 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 7px 12px 7px 34px;
+      font-size: 13px;
+      width: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    .search-box input:focus { border-color: var(--accent); }
+
+    .search-box::before {
+      content: '🔍';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    .clients-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .clients-list::-webkit-scrollbar { width: 4px; }
+    .clients-list::-webkit-scrollbar-track { background: transparent; }
+    .clients-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .client-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .client-item:hover { background: var(--surface2); }
+    .client-item.active { background: rgba(91,106,240,0.1); border-color: rgba(91,106,240,0.3); }
+
+    .client-avatar {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .avatar-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .status-badge {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--surface);
+    }
+
+    .status-badge.green { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .status-badge.blue { background: var(--blue); box-shadow: 0 0 5px var(--blue); }
+
+    .client-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .client-name {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .client-preview {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .client-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .client-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .toggle-btn {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+
+    .toggle-btn.stop {
+      background: rgba(239,68,68,0.15);
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+
+    .toggle-btn.stop:hover { background: rgba(239,68,68,0.25); }
+
+    .toggle-btn.resume {
+      background: rgba(34,197,94,0.15);
+      color: var(--green);
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+
+    .toggle-btn.resume:hover { background: rgba(34,197,94,0.25); }
+
+    /* ===== Right Panel ===== */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ===== Chat View ===== */
+    .chat-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-header .avatar-circle { width: 36px; height: 36px; font-size: 14px; }
+
+    .chat-header-info h3 { font-size: 14px; font-weight: 600; }
+    .chat-header-info p { font-size: 12px; color: var(--text-muted); }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar { width: 3px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .empty-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      gap: 8px;
+    }
+
+    .empty-chat .icon { font-size: 40px; opacity: 0.4; }
+    .empty-chat p { font-size: 13px; }
+
+    .message-bubble {
+      max-width: 85%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .message-bubble.user {
+      background: var(--surface2);
+      align-self: flex-start;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-bubble.bot {
+      background: rgba(91,106,240,0.2);
+      align-self: flex-end;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(91,106,240,0.3);
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* ===== Knowledge Panel ===== */
+    .knowledge-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      flex-shrink: 0;
+    }
+
+    .knowledge-panel h2 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .knowledge-panel textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      height: 110px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+
+    .knowledge-panel textarea:focus { border-color: var(--accent); }
+
+    .save-btn {
+      width: 100%;
+      margin-top: 10px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .save-btn:hover { opacity: 0.9; }
+    .save-btn:active { transform: scale(0.98); }
+    .save-btn.saved { background: var(--green); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 13px;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .right-panel { display: none; }
+      .stats-bar { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    <div class="logo-text">
+      <h1>لوحة تحكم إفادة</h1>
+      <p>إدارة محادثات البوت</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="bot-status" id="botStatus">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">جاري التحقق...</span>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-icon total">👥</div>
+    <div class="stat-info">
+      <h3 id="statTotal">—</h3>
+      <p>إجمالي العملاء</p>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon active">🟢</div>
+    <div class="stat-info">
+      <h3 id="statActive">—</h3>
+      <p>البوت نشط</p>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon paused">🔵</div>
+    <div class="stat-info">
+      <h3 id="statPaused">—</h3>
+      <p>فريق الدعم يتابع</p>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- قائمة العملاء -->
+  <div class="clients-panel">
+    <div class="panel-header">
+      <h2>المحادثات</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="بحث..." oninput="filterClients()" />
+      </div>
+    </div>
+    <div class="clients-list" id="clientsList">
+      <div class="empty-state">
+        <div class="icon">💬</div>
+        <p>لا توجد محادثات بعد</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- اللوحة اليمنى -->
+  <div class="right-panel">
+    <!-- عرض المحادثة -->
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-header" id="chatHeader" style="display:none">
+        <div class="avatar-circle" id="chatAvatar"></div>
+        <div class="chat-header-info">
+          <h3 id="chatName"></h3>
+          <p id="chatSub"></p>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-chat">
+          <div class="icon">💬</div>
+          <p>اختر محادثة لعرضها</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- إضافة بيانات للبوت -->
+    <div class="knowledge-panel">
+      <h2>📚 معلومات إضافية للبوت</h2>
+      <textarea id="knowledgeText" placeholder="أضف هنا أي معلومات تريد أن يعرفها البوت مثلاً:
+- عروض خاصة أو خصومات
+- معلومات إضافية عن الكورسات
+- أسئلة شائعة
+- تعليمات خاصة"></textarea>
+      <button class="save-btn" id="saveBtn" onclick="saveKnowledge()">💾 حفظ المعلومات</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let allClients = [];
+  let selectedUserId = null;
+  let refreshInterval;
+
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return 'الآن';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' د';
+    if (diff < 86400000) {
+      return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+    }
+    return d.toLocaleDateString('ar');
+  }
+
+  function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return parts[0][0] + parts[1][0];
+    return name[0] || '?';
+  }
+
+  function showToast(msg, duration = 2500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  async function fetchStats() {
+    try {
+      const r = await fetch('/api/stats');
+      const data = await r.json();
+      document.getElementById('statTotal').textContent = data.totalClients;
+      document.getElementById('statActive').textContent = data.activeClients;
+      document.getElementById('statPaused').textContent = data.pausedClients;
+
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      if (data.botConnected) {
+        dot.className = 'status-dot';
+        txt.textContent = 'البوت متصل';
+      } else {
+        dot.className = 'status-dot offline';
+        txt.textContent = 'البوت غير متصل';
+      }
+    } catch (e) {}
+  }
+
+  async function fetchClients() {
+    try {
+      const r = await fetch('/api/clients');
+      allClients = await r.json();
+      renderClients(allClients);
+    } catch (e) {}
+  }
+
+  function filterClients() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allClients.filter(c =>
+      c.name.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q)
+    );
+    renderClients(filtered);
+  }
+
+  function renderClients(clients) {
+    const container = document.getElementById('clientsList');
+    if (!clients || clients.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>لا توجد محادثات بعد</p></div>`;
+      return;
+    }
+    container.innerHTML = clients.map(c => {
+      const initials = getInitials(c.name);
+      const badgeClass = c.paused ? 'blue' : 'green';
+      const btnClass = c.paused ? 'resume' : 'stop';
+      const btnText = c.paused ? 'تشغيل' : 'إيقاف';
+      const isActive = selectedUserId === c.userId ? 'active' : '';
+      return `
+        <div class="client-item ${isActive}" onclick="selectClient('${encodeURIComponent(c.userId)}', '${c.name.replace(/'/g,"\\'")}', ${c.paused})">
+          <div class="client-avatar">
+            <div class="avatar-circle">${initials}</div>
+            <div class="status-badge ${badgeClass}"></div>
+          </div>
+          <div class="client-info">
+            <div class="client-name">${c.name}</div>
+            <div class="client-preview">${c.lastMessage || ''}</div>
+          </div>
+          <div class="client-meta">
+            <span class="client-time">${formatTime(c.lastTime)}</span>
+            <button class="toggle-btn ${btnClass}"
+              onclick="event.stopPropagation(); togglePause('${encodeURIComponent(c.userId)}')"
+            >${btnText}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function selectClient(encodedId, name, paused) {
+    selectedUserId = decodeURIComponent(encodedId);
+    const header = document.getElementById('chatHeader');
+    header.style.display = 'flex';
+    document.getElementById('chatAvatar').textContent = getInitials(name);
+    document.getElementById('chatName').textContent = name;
+    document.getElementById('chatSub').textContent = paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
+
+    await loadMessages(selectedUserId);
+    renderClients(allClients);
+  }
+
+  async function loadMessages(userId) {
+    try {
+      const r = await fetch('/api/clients/' + encodeURIComponent(userId) + '/messages');
+      const msgs = await r.json();
+      const container = document.getElementById('chatMessages');
+      if (!msgs || msgs.length === 0) {
+        container.innerHTML = `<div class="empty-chat"><div class="icon">💬</div><p>لا توجد رسائل</p></div>`;
+        return;
+      }
+      container.innerHTML = msgs.map(m => {
+        const cls = m.fromBot ? 'bot' : 'user';
+        const label = m.fromBot ? '🤖 عبدالله' : '👤 العميل';
+        return `
+          <div class="message-bubble ${cls}">
+            ${m.text}
+            <span class="msg-time">${label} · ${formatTime(m.time)}</span>
+          </div>
+        `;
+      }).join('');
+      container.scrollTop = container.scrollHeight;
+    } catch (e) {}
+  }
+
+  async function togglePause(encodedId) {
+    try {
+      const r = await fetch('/api/clients/' + encodedId + '/toggle-pause', { method: 'POST' });
+      const data = await r.json();
+      showToast(data.paused ? '🔵 تم إيقاف البوت عن هذا العميل' : '🟢 تم تشغيل البوت للعميل');
+      await fetchClients();
+      await fetchStats();
+    } catch (e) {
+      showToast('حدث خطأ، حاول مرة ثانية');
+    }
+  }
+
+  async function loadKnowledge() {
+    try {
+      const r = await fetch('/api/knowledge');
+      const data = await r.json();
+      document.getElementById('knowledgeText').value = data.text || '';
+    } catch (e) {}
+  }
+
+  async function saveKnowledge() {
+    const text = document.getElementById('knowledgeText').value;
+    const btn = document.getElementById('saveBtn');
+    try {
+      await fetch('/api/knowledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      btn.textContent = '✅ تم الحفظ';
+      btn.className = 'save-btn saved';
+      showToast('✅ تم حفظ المعلومات بنجاح');
+      setTimeout(() => {
+        btn.textContent = '💾 حفظ المعلومات';
+        btn.className = 'save-btn';
+      }, 2000);
+    } catch (e) {
+      showToast('حدث خطأ في الحفظ');
+    }
+  }
+
+  async function refresh() {
+    await fetchStats();
+    await fetchClients();
+    if (selectedUserId) await loadMessages(selectedUserId);
+  }
+
+  // تشغيل أولي
+  loadKnowledge();
+  refresh();
+  refreshInterval = setInterval(refresh, 5000);
+</script>
+</body>
+</html>
