@@ -28,6 +28,7 @@ const IEFADA_COURSE_API = "https://www.iefada.com/api/v1/website/courses/{slug}"
 const IEFADA_URL = "https://www.iefada.com";
 const LOCAL_COURSES_FILE = "all_courses_details.json";
 const CUSTOM_KNOWLEDGE_FILE = "custom_knowledge.txt";
+const PAUSED_USERS_FILE = "paused_users.json";
 
 const MAX_HISTORY = 4;
 
@@ -49,8 +50,28 @@ const _contextCache = {};
 
 // ==================== إدارة العملاء ====================
 
-// مجموعة المستخدمين الموقوف البوت عنهم
-const pausedUsers = new Set();
+// تحميل قائمة الإيقاف من الملف عند البدء
+function loadPausedUsers() {
+  try {
+    if (fs.existsSync(PAUSED_USERS_FILE)) {
+      const arr = JSON.parse(fs.readFileSync(PAUSED_USERS_FILE, "utf-8"));
+      return new Set(Array.isArray(arr) ? arr : []);
+    }
+  } catch (e) {}
+  return new Set();
+}
+
+function savePausedUsers() {
+  try {
+    fs.writeFileSync(PAUSED_USERS_FILE, JSON.stringify([...pausedUsers]), "utf-8");
+  } catch (e) {
+    console.log("خطأ في حفظ paused_users:", e?.message);
+  }
+}
+
+// مجموعة المستخدمين الموقوف البوت عنهم — محفوظة على القرص
+const pausedUsers = loadPausedUsers();
+console.log(`✅ تم تحميل ${pausedUsers.size} مستخدم موقوف من الملف`);
 
 // بيانات العملاء للوحة التحكم
 // userId -> { name, lastMessage, lastTime, messageCount, messages: [] }
@@ -472,9 +493,11 @@ app.post("/api/clients/:userId/toggle-pause", (req, res) => {
   const userId = decodeURIComponent(req.params.userId);
   if (pausedUsers.has(userId)) {
     pausedUsers.delete(userId);
+    savePausedUsers();
     res.json({ paused: false });
   } else {
     pausedUsers.add(userId);
+    savePausedUsers();
     res.json({ paused: true });
   }
 });
@@ -753,6 +776,7 @@ async function handleMessagesUpsert({ messages }) {
       // كشف التصعيد
       if (aiText && aiText.startsWith("[ESCALATE]")) {
         pausedUsers.add(userId);
+        savePausedUsers();
         console.log(`  [ESCALATE] تم إيقاف البوت عن: ${userId}`);
         await sendText(sender, ESCALATION_MESSAGE);
         updateClientData(userId, pushName, ESCALATION_MESSAGE, true);
@@ -812,6 +836,7 @@ async function handleMessagesUpsert({ messages }) {
     // كشف التصعيد
     if (response && response.startsWith("[ESCALATE]")) {
       pausedUsers.add(userId);
+      savePausedUsers();
       console.log(`  [ESCALATE] تم إيقاف البوت عن: ${userId}`);
       await sendText(sender, ESCALATION_MESSAGE);
       updateClientData(userId, pushName, ESCALATION_MESSAGE, true);
