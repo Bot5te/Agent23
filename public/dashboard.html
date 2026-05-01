@@ -6,617 +6,1021 @@
   <title>لوحة تحكم إفادة</title>
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #21253a;
-      --border: #2a2f45;
-      --accent: #5b6af0;
-      --accent-light: #7a87f7;
-      --green: #22c55e;
-      --blue: #3b82f6;
-      --red: #ef4444;
-      --text: #e2e8f0;
-      --text-muted: #8892a4;
+      --bg:          #0d0e12;
+      --surface:     #13151d;
+      --surface2:    #1b1e2a;
+      --surface3:    #222636;
+      --border:      #2a2f45;
+      --border-soft: #22263a;
+
+      --gold:        #f5c518;
+      --gold-dark:   #c9a012;
+      --gold-glow:   rgba(245,197,24,0.18);
+      --gold-soft:   rgba(245,197,24,0.08);
+
+      --green:       #22c55e;
+      --green-soft:  rgba(34,197,94,0.12);
+      --blue:        #3b82f6;
+      --blue-soft:   rgba(59,130,246,0.12);
+      --red:         #ef4444;
+      --red-soft:    rgba(239,68,68,0.12);
+
+      --text:        #eef0f6;
+      --text-2:      #a0a8c0;
+      --text-3:      #5c6380;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Segoe UI', 'Cairo', Arial, sans-serif;
+      font-family: 'Segoe UI', 'Cairo', Tahoma, Arial, sans-serif;
       min-height: 100vh;
     }
 
-    /* ===== Header ===== */
+    /* ═══════════════ HEADER ═══════════════ */
     header {
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 24px;
+      border-bottom: 1px solid var(--border-soft);
+      padding: 0 28px;
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    .logo { display: flex; align-items: center; gap: 10px; }
-    .logo-icon {
-      width: 40px; height: 40px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-light));
-      border-radius: 11px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    .logo-text h1 { font-size: 17px; font-weight: 700; }
-    .logo-text p { font-size: 12px; color: var(--text-muted); }
-    .bot-status {
-      display: flex; align-items: center; gap: 8px;
+
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      background: var(--gold);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+
+    .logo-text strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.2px;
+    }
+    .logo-text span {
+      font-size: 11px;
+      color: var(--text-3);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bot-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 6px 14px; font-size: 13px;
+      padding: 6px 14px;
+      font-size: 12.5px;
+      font-weight: 500;
     }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-      animation: pulse 2s infinite;
-    }
-    .status-dot.offline { background: var(--red); box-shadow: 0 0 6px var(--red); animation: none; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    /* ===== Stats ===== */
-    .stats-bar {
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s infinite; }
+    .dot.red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+    .dot.gold  { background: var(--gold);  box-shadow: 0 0 6px var(--gold); animation: blink 2s infinite; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ═══════════════ STATS ═══════════════ */
+    .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 16px 24px;
+      gap: 14px;
+      padding: 20px 28px 4px;
     }
-    .stat-card {
+
+    .stat {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .stat-icon {
-      width: 44px; height: 44px; border-radius: 11px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
-    }
-    .stat-icon.total { background: rgba(91,106,240,0.15); }
-    .stat-icon.active { background: rgba(34,197,94,0.15); }
-    .stat-icon.paused { background: rgba(59,130,246,0.15); }
-    .stat-info h3 { font-size: 24px; font-weight: 700; line-height: 1; }
-    .stat-info p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-
-    /* ===== Tabs ===== */
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      background: var(--surface);
-    }
-    .tab-btn {
-      padding: 12px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      color: var(--accent-light);
-      border-bottom-color: var(--accent);
-    }
-    .tab-btn:hover:not(.active) { color: var(--text); }
-
-    /* ===== Tab Content ===== */
-    .tab-content { display: none; padding: 20px 24px; }
-    .tab-content.active { display: block; }
-
-    /* ===== Conversations Tab ===== */
-    .conv-layout {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 16px;
-      height: calc(100vh - 240px);
-    }
-
-    .clients-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-soft);
       border-radius: 14px;
-      display: flex; flex-direction: column;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
       overflow: hidden;
     }
-    .panel-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--stripe, var(--gold));
+      border-radius: 0 14px 14px 0;
     }
-    .panel-header h2 { font-size: 14px; font-weight: 600; }
-    .search-box { position: relative; }
-    .search-box input {
+
+    .stat.s-gold  { --stripe: var(--gold); }
+    .stat.s-green { --stripe: var(--green); }
+    .stat.s-blue  { --stripe: var(--blue); }
+
+    .stat-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+      flex-shrink: 0;
+    }
+
+    .stat.s-gold  .stat-icon { background: var(--gold-soft); }
+    .stat.s-green .stat-icon { background: var(--green-soft); }
+    .stat.s-blue  .stat-icon { background: var(--blue-soft); }
+
+    .stat-body h3 {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat.s-gold  .stat-body h3 { color: var(--gold); }
+    .stat.s-green .stat-body h3 { color: var(--green); }
+    .stat.s-blue  .stat-body h3 { color: var(--blue); }
+
+    .stat-body p {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 4px;
+    }
+
+    /* ═══════════════ TABS ═══════════════ */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      padding: 18px 28px 0;
+    }
+
+    .tab {
+      padding: 9px 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-3);
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .tab.active {
+      color: var(--gold);
+      background: var(--surface);
+      border-color: var(--border-soft);
+      border-bottom-color: var(--surface);
+    }
+
+    .tab:hover:not(.active) { color: var(--text-2); }
+
+    .tab-body {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 0 14px 14px 14px;
+      margin: 0 28px 28px;
+      padding: 24px;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ═══════════════ CONVERSATIONS LAYOUT ═══════════════ */
+    .conv-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 20px;
+      height: calc(100vh - 262px);
+    }
+
+    /* clients list */
+    .clients-wrap {
       background: var(--surface2);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .panel-head h2 {
+      font-size: 13.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input {
+      background: var(--surface3);
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
-      padding: 7px 12px 7px 32px;
-      font-size: 13px;
-      width: 180px;
+      padding: 7px 32px 7px 12px;
+      font-size: 12.5px;
+      width: 175px;
       outline: none;
       font-family: inherit;
-      transition: border-color 0.2s;
+      transition: border-color .2s;
     }
-    .search-box input:focus { border-color: var(--accent); }
-    .search-icon {
-      position: absolute; right: 10px; top: 50%;
+
+    .search-wrap input:focus { border-color: var(--gold); }
+    .search-wrap input::placeholder { color: var(--text-3); }
+
+    .search-wrap .sicon {
+      position: absolute;
+      right: 9px;
+      top: 50%;
       transform: translateY(-50%);
-      font-size: 13px; pointer-events: none;
+      font-size: 13px;
+      pointer-events: none;
     }
 
-    .clients-list { flex: 1; overflow-y: auto; padding: 6px; }
-    .clients-list::-webkit-scrollbar { width: 4px; }
-    .clients-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .clients-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+    }
 
-    .client-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 11px 12px; border-radius: 10px;
-      cursor: pointer; transition: background 0.15s;
+    .clients-scroll::-webkit-scrollbar { width: 3px; }
+    .clients-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .client-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s;
       border: 1px solid transparent;
     }
-    .client-item:hover { background: var(--surface2); }
-    .client-item.selected { background: rgba(91,106,240,0.1); border-color: rgba(91,106,240,0.3); }
 
-    .client-avatar { position: relative; flex-shrink: 0; }
-    .avatar-circle {
-      width: 42px; height: 42px; border-radius: 50%;
-      background: linear-gradient(135deg, #5b6af0, #7a87f7);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; color: #fff;
+    .client-row:hover { background: var(--surface3); }
+
+    .client-row.sel {
+      background: var(--gold-soft);
+      border-color: rgba(245,197,24,.25);
     }
-    .status-badge {
-      position: absolute; bottom: 0; left: 0;
-      width: 13px; height: 13px; border-radius: 50%;
-      border: 2px solid var(--surface);
+
+    .av-wrap { position: relative; flex-shrink: 0; }
+
+    .av {
+      width: 41px;
+      height: 41px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#2a2f45,#3a3f58);
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
     }
-    .status-badge.green { background: var(--green); box-shadow: 0 0 4px var(--green); }
-    .status-badge.blue { background: var(--blue); box-shadow: 0 0 4px var(--blue); }
+
+    .badge {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--surface2);
+    }
+
+    .badge.green { background: var(--green); box-shadow: 0 0 4px var(--green); }
+    .badge.blue  { background: var(--blue);  box-shadow: 0 0 4px var(--blue); }
 
     .client-info { flex: 1; min-width: 0; }
-    .client-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .client-preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
 
-    .client-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-    .client-time { font-size: 11px; color: var(--text-muted); }
-    .toggle-btn {
-      font-size: 11px; padding: 3px 9px; border-radius: 6px;
-      border: none; cursor: pointer; font-family: inherit;
-      transition: all 0.2s; font-weight: 600;
+    .ci-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .toggle-btn.stop { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
-    .toggle-btn.stop:hover { background: rgba(239,68,68,0.22); }
-    .toggle-btn.resume { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
-    .toggle-btn.resume:hover { background: rgba(34,197,94,0.22); }
 
-    /* ===== Chat Panel ===== */
-    .chat-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      display: flex; flex-direction: column;
+    .ci-preview {
+      font-size: 11.5px;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .client-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .ci-time { font-size: 10.5px; color: var(--text-3); }
+
+    .tbtn {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      border: 1px solid;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all .2s;
+    }
+
+    .tbtn.stop {
+      background: var(--red-soft);
+      color: var(--red);
+      border-color: rgba(239,68,68,.28);
+    }
+
+    .tbtn.stop:hover { background: rgba(239,68,68,.22); }
+
+    .tbtn.resume {
+      background: var(--green-soft);
+      color: var(--green);
+      border-color: rgba(34,197,94,.28);
+    }
+
+    .tbtn.resume:hover { background: rgba(34,197,94,.22); }
+
+    /* chat panel */
+    .chat-wrap {
+      background: var(--surface2);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
-    .chat-header {
+
+    .chat-head {
       padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
     }
-    .chat-header .avatar-circle { width: 34px; height: 34px; font-size: 13px; }
-    .chat-header-info h3 { font-size: 13px; font-weight: 600; }
-    .chat-header-info p { font-size: 11px; color: var(--text-muted); }
 
-    .chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 7px; }
-    .chat-messages::-webkit-scrollbar { width: 3px; }
-    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .chat-head .av { width: 34px; height: 34px; font-size: 13px; }
 
-    .empty-chat {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      color: var(--text-muted); gap: 8px;
+    .ch-info strong { font-size: 13px; display: block; }
+    .ch-info span   { font-size: 11px; color: var(--text-2); }
+
+    .chat-msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    .empty-chat .icon { font-size: 36px; opacity: 0.3; }
-    .empty-chat p { font-size: 13px; }
 
-    .message-bubble {
-      max-width: 85%; padding: 8px 12px; border-radius: 11px;
-      font-size: 13px; line-height: 1.5; word-break: break-word;
+    .chat-msgs::-webkit-scrollbar { width: 3px; }
+    .chat-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .empty-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-3);
+      gap: 8px;
     }
-    .message-bubble.user {
-      background: var(--surface2); align-self: flex-start;
+
+    .empty-box .eicon { font-size: 34px; opacity: .3; }
+    .empty-box p { font-size: 12.5px; }
+
+    .bubble {
+      max-width: 86%;
+      padding: 9px 13px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .bubble.usr {
+      background: var(--surface3);
+      align-self: flex-start;
       border-bottom-right-radius: 3px;
     }
-    .message-bubble.bot {
-      background: rgba(91,106,240,0.18); align-self: flex-end;
-      border-bottom-left-radius: 3px;
-      border: 1px solid rgba(91,106,240,0.28);
-    }
-    .msg-time { font-size: 10px; color: var(--text-muted); margin-top: 3px; display: block; }
 
-    /* ===== Knowledge Tab ===== */
-    .knowledge-layout {
-      max-width: 700px;
+    .bubble.bot {
+      background: var(--gold-soft);
+      border: 1px solid rgba(245,197,24,.2);
+      align-self: flex-end;
+      border-bottom-left-radius: 3px;
     }
-    .knowledge-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
+
+    .btime {
+      font-size: 10px;
+      color: var(--text-3);
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* ═══════════════ KNOWLEDGE ═══════════════ */
+    .know-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .know-card {
+      background: var(--surface2);
+      border: 1px solid var(--border-soft);
       border-radius: 14px;
-      padding: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
-    .knowledge-card h2 {
-      font-size: 16px; font-weight: 700; margin-bottom: 6px;
-      display: flex; align-items: center; gap: 8px;
+
+    .know-card-head {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border-soft);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .knowledge-card .desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
-    .knowledge-card textarea {
+
+    .know-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: var(--gold-soft);
+      border: 1px solid rgba(245,197,24,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .know-card-head h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .know-card-head p {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    .know-body {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .know-textarea {
       width: 100%;
+      min-height: 140px;
+      background: var(--surface3);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: var(--text);
+      padding: 11px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      line-height: 1.65;
+      transition: border-color .2s;
+    }
+
+    .know-textarea:focus { border-color: var(--gold); }
+    .know-textarea::placeholder { color: var(--text-3); font-size: 12px; }
+
+    .char-count {
+      font-size: 11px;
+      color: var(--text-3);
+      text-align: left;
+    }
+
+    .know-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-save {
+      flex: 1;
+      padding: 9px 0;
+      background: var(--gold);
+      color: #0d0e12;
+      border: none;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .btn-save:hover   { opacity: .9; }
+    .btn-save:active  { transform: scale(.97); }
+    .btn-save.saved   { background: var(--green); color: #fff; }
+
+    .btn-clear {
+      padding: 9px 12px;
+      background: var(--red-soft);
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,.25);
+      border-radius: 9px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .2s;
+    }
+
+    .btn-clear:hover { background: rgba(239,68,68,.22); }
+
+    /* status bar under card */
+    .know-status {
+      font-size: 11px;
+      padding: 7px 14px;
+      border-top: 1px solid var(--border-soft);
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .know-status.has-data { color: var(--green); }
+
+    /* ═══════════════ TOAST ═══════════════ */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(70px);
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 10px;
-      color: var(--text);
-      padding: 14px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 220px;
-      outline: none;
-      transition: border-color 0.2s;
-      line-height: 1.7;
+      padding: 10px 22px;
+      font-size: 13px;
+      transition: transform .3s;
+      z-index: 999;
+      box-shadow: 0 6px 24px rgba(0,0,0,.5);
     }
-    .knowledge-card textarea:focus { border-color: var(--accent); }
-    .knowledge-card textarea::placeholder { color: var(--text-muted); }
 
-    .save-btn {
-      margin-top: 14px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 28px;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer; font-family: inherit;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-    .save-btn:hover { opacity: 0.9; }
-    .save-btn:active { transform: scale(0.98); }
-    .save-btn.saved { background: var(--green); }
-
-    .knowledge-tips {
-      margin-top: 16px;
-      background: rgba(91,106,240,0.07);
-      border: 1px solid rgba(91,106,240,0.2);
-      border-radius: 10px;
-      padding: 14px;
-    }
-    .knowledge-tips h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--accent-light); }
-    .knowledge-tips ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
-    .knowledge-tips li { font-size: 13px; color: var(--text-muted); padding-right: 16px; position: relative; }
-    .knowledge-tips li::before { content: '•'; position: absolute; right: 0; color: var(--accent); }
-
-    /* ===== Empty States ===== */
-    .empty-state {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 100%; color: var(--text-muted); gap: 8px;
-    }
-    .empty-state .icon { font-size: 38px; opacity: 0.3; }
-    .empty-state p { font-size: 13px; }
-
-    /* ===== Toast ===== */
-    .toast {
-      position: fixed; bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(70px);
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 20px; font-size: 13px;
-      transition: transform 0.3s ease; z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
-    @media (max-width: 800px) {
-      .conv-layout { grid-template-columns: 1fr; }
-      .stats-bar { grid-template-columns: 1fr 1fr; }
+    /* ═══════════════ RESPONSIVE ═══════════════ */
+    @media (max-width: 900px) {
+      .conv-grid { grid-template-columns: 1fr; }
+      .know-grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      header { padding: 0 14px; }
+      .tab-bar, .tab-body { margin-left: 14px; margin-right: 14px; }
     }
   </style>
 </head>
 <body>
 
+<!-- ════════════ HEADER ════════════ -->
 <header>
   <div class="logo">
-    <div class="logo-icon">🤖</div>
+    <div class="logo-mark">🤖</div>
     <div class="logo-text">
-      <h1>لوحة تحكم إفادة</h1>
-      <p>إدارة محادثات البوت</p>
+      <strong>لوحة تحكم إفادة</strong>
+      <span>إدارة بوت واتساب</span>
     </div>
   </div>
-  <div class="bot-status">
-    <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">جاري التحقق...</span>
+  <div class="header-right">
+    <div class="bot-pill">
+      <div class="dot red" id="statusDot"></div>
+      <span id="statusText">جاري التحقق...</span>
+    </div>
   </div>
 </header>
 
-<div class="stats-bar">
-  <div class="stat-card">
-    <div class="stat-icon total">👥</div>
-    <div class="stat-info">
-      <h3 id="statTotal">—</h3>
+<!-- ════════════ STATS ════════════ -->
+<div class="stats">
+  <div class="stat s-gold">
+    <div class="stat-icon">👥</div>
+    <div class="stat-body">
+      <h3 id="sTotal">—</h3>
       <p>إجمالي العملاء</p>
     </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-icon active">🟢</div>
-    <div class="stat-info">
-      <h3 id="statActive">—</h3>
+  <div class="stat s-green">
+    <div class="stat-icon">🟢</div>
+    <div class="stat-body">
+      <h3 id="sActive">—</h3>
       <p>البوت نشط</p>
     </div>
   </div>
-  <div class="stat-card">
-    <div class="stat-icon paused">🔵</div>
-    <div class="stat-info">
-      <h3 id="statPaused">—</h3>
+  <div class="stat s-blue">
+    <div class="stat-icon">🔵</div>
+    <div class="stat-body">
+      <h3 id="sPaused">—</h3>
       <p>فريق الدعم يتابع</p>
     </div>
   </div>
 </div>
 
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('conversations', this)">💬 المحادثات</button>
-  <button class="tab-btn" onclick="switchTab('knowledge', this)">📚 معلومات البوت</button>
+<!-- ════════════ TABS ════════════ -->
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('conv',this)">💬 المحادثات</button>
+  <button class="tab" onclick="switchTab('know',this)">📚 معلومات البوت</button>
 </div>
 
-<!-- تاب المحادثات -->
-<div class="tab-content active" id="tab-conversations">
-  <div class="conv-layout">
-    <div class="clients-panel">
-      <div class="panel-header">
-        <h2>المحادثات</h2>
-        <div class="search-box">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" placeholder="بحث..." oninput="filterClients()" />
-        </div>
-      </div>
-      <div class="clients-list" id="clientsList">
-        <div class="empty-state">
-          <div class="icon">💬</div>
-          <p>لا توجد محادثات بعد</p>
-        </div>
-      </div>
-    </div>
+<div class="tab-body">
 
-    <div class="chat-panel">
-      <div class="chat-header" id="chatHeader" style="display:none">
-        <div class="avatar-circle" id="chatAvatar"></div>
-        <div class="chat-header-info">
-          <h3 id="chatName"></h3>
-          <p id="chatSub"></p>
+  <!-- ── محادثات ── -->
+  <div class="tab-pane active" id="pane-conv">
+    <div class="conv-grid">
+
+      <!-- قائمة العملاء -->
+      <div class="clients-wrap">
+        <div class="panel-head">
+          <h2>💬 المحادثات</h2>
+          <div class="search-wrap">
+            <span class="sicon">🔍</span>
+            <input type="text" id="searchInput" placeholder="بحث عن عميل..." oninput="filterClients()" />
+          </div>
+        </div>
+        <div class="clients-scroll" id="clientsList">
+          <div class="empty-box" style="padding:40px 0">
+            <div class="eicon">💬</div>
+            <p>لا توجد محادثات بعد</p>
+          </div>
         </div>
       </div>
-      <div class="chat-messages" id="chatMessages">
-        <div class="empty-chat">
-          <div class="icon">💬</div>
-          <p>اختر محادثة من القائمة</p>
+
+      <!-- المحادثة -->
+      <div class="chat-wrap">
+        <div class="chat-head" id="chatHead" style="display:none">
+          <div class="av-wrap">
+            <div class="av" id="chatAv"></div>
+          </div>
+          <div class="ch-info">
+            <strong id="chatName"></strong>
+            <span id="chatSub"></span>
+          </div>
+        </div>
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="empty-box">
+            <div class="eicon">💬</div>
+            <p>اختر محادثة من القائمة</p>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
-<!-- تاب المعلومات -->
-<div class="tab-content" id="tab-knowledge">
-  <div class="knowledge-layout">
-    <div class="knowledge-card">
-      <h2>📚 معلومات إضافية للبوت</h2>
-      <p class="desc">
-        أي معلومة تكتبها هنا سيعرفها البوت ويستخدمها في محادثاته مع العملاء فورًا.
-        يمكنك إضافة عروض، أسئلة شائعة، تعليمات خاصة، أو أي تفاصيل إضافية.
-      </p>
-      <textarea id="knowledgeText" placeholder="مثال:
-- خصم 20% على جميع الكورسات حتى نهاية الشهر بكود IEFADA20
-- كورس Python المتقدم سيبدأ الدفعة الجديدة بتاريخ 15/6
-- للاستفسار عن الدفع بالتقسيط تواصل مع الدعم مباشرة
-- الكورسات تشمل شهادة معتمدة بعد الإتمام"></textarea>
-      <button class="save-btn" id="saveBtn" onclick="saveKnowledge()">💾 حفظ المعلومات</button>
-
-      <div class="knowledge-tips">
-        <h4>💡 نصائح</h4>
-        <ul>
-          <li>ابدأ كل معلومة بسطر جديد لتسهيل القراءة</li>
-          <li>أضف عروض أو خصومات مؤقتة هنا وحذفها بعد انتهائها</li>
-          <li>يمكنك إضافة إجابات على الأسئلة المتكررة من العملاء</li>
-          <li>التغييرات تُطبق فورًا على المحادثات القادمة</li>
-        </ul>
-      </div>
     </div>
   </div>
+
+  <!-- ── معلومات البوت ── -->
+  <div class="tab-pane" id="pane-know">
+    <div class="know-grid">
+
+      <!-- عروض وخصومات -->
+      <div class="know-card" id="card-offers">
+        <div class="know-card-head">
+          <div class="know-icon">🎁</div>
+          <div>
+            <h3>عروض وخصومات</h3>
+            <p>كودات، خصومات، عروض مؤقتة</p>
+          </div>
+        </div>
+        <div class="know-body">
+          <textarea class="know-textarea" id="ta-offers"
+            placeholder="مثال:
+خصم 20% على جميع الكورسات بكود IEFADA20
+عرض محدود: كورس Python بـ 29 ريال فقط"
+            oninput="updateChar('offers')"></textarea>
+          <div class="char-count" id="cc-offers">0 حرف</div>
+          <div class="know-actions">
+            <button class="btn-save" id="bs-offers" onclick="saveSection('offers')">💾 حفظ</button>
+            <button class="btn-clear" onclick="clearSection('offers')" title="حذف المحتوى">🗑</button>
+          </div>
+        </div>
+        <div class="know-status" id="ks-offers">⬜ لا يوجد محتوى</div>
+      </div>
+
+      <!-- تعليمات خاصة -->
+      <div class="know-card" id="card-instructions">
+        <div class="know-card-head">
+          <div class="know-icon">📋</div>
+          <div>
+            <h3>تعليمات خاصة</h3>
+            <p>توجيهات وسياسات لعبدالله</p>
+          </div>
+        </div>
+        <div class="know-body">
+          <textarea class="know-textarea" id="ta-instructions"
+            placeholder="مثال:
+لا تذكر أسعار الكورسات إلا إذا سأل العميل مباشرة
+أكد دائماً أن الكورسات تشمل شهادة معتمدة"
+            oninput="updateChar('instructions')"></textarea>
+          <div class="char-count" id="cc-instructions">0 حرف</div>
+          <div class="know-actions">
+            <button class="btn-save" id="bs-instructions" onclick="saveSection('instructions')">💾 حفظ</button>
+            <button class="btn-clear" onclick="clearSection('instructions')" title="حذف المحتوى">🗑</button>
+          </div>
+        </div>
+        <div class="know-status" id="ks-instructions">⬜ لا يوجد محتوى</div>
+      </div>
+
+      <!-- أسئلة شائعة -->
+      <div class="know-card" id="card-faqs">
+        <div class="know-card-head">
+          <div class="know-icon">❓</div>
+          <div>
+            <h3>أسئلة شائعة</h3>
+            <p>ردود جاهزة على الأسئلة المتكررة</p>
+          </div>
+        </div>
+        <div class="know-body">
+          <textarea class="know-textarea" id="ta-faqs"
+            placeholder="مثال:
+س: هل يوجد دعم فني؟
+ج: نعم، فريق الدعم متاح على واتساب 24/7
+
+س: هل الكورس بالعربي؟
+ج: نعم، جميع كورساتنا باللغة العربية"
+            oninput="updateChar('faqs')"></textarea>
+          <div class="char-count" id="cc-faqs">0 حرف</div>
+          <div class="know-actions">
+            <button class="btn-save" id="bs-faqs" onclick="saveSection('faqs')">💾 حفظ</button>
+            <button class="btn-clear" onclick="clearSection('faqs')" title="حذف المحتوى">🗑</button>
+          </div>
+        </div>
+        <div class="know-status" id="ks-faqs">⬜ لا يوجد محتوى</div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
   let allClients = [];
-  let selectedUserId = null;
+  let selectedId  = null;
 
-  function switchTab(tabName, btn) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + tabName).classList.add('active');
-    btn.classList.add('active');
+  /* ══ Utils ══ */
+  function $(id) { return document.getElementById(id); }
+
+  function showToast(msg, duration = 2800) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
   }
 
-  function formatTime(ts) {
+  function fmtTime(ts) {
     if (!ts) return '';
-    const d = new Date(ts);
-    const diff = Date.now() - d;
-    if (diff < 60000) return 'الآن';
+    const d = new Date(ts), diff = Date.now() - d;
+    if (diff < 60000)   return 'الآن';
     if (diff < 3600000) return Math.floor(diff / 60000) + ' د';
     if (diff < 86400000) return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
     return d.toLocaleDateString('ar');
   }
 
-  function getInitials(name) {
+  function initials(name) {
     if (!name) return '?';
     const p = name.trim().split(' ');
-    if (p.length >= 2) return p[0][0] + p[1][0];
-    return name[0] || '?';
+    return p.length >= 2 ? p[0][0] + p[1][0] : name[0] || '?';
   }
 
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2800);
+  /* ══ Tabs ══ */
+  function switchTab(id, btn) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    $('pane-' + id).classList.add('active');
+    btn.classList.add('active');
   }
 
+  /* ══ Stats ══ */
   async function fetchStats() {
     try {
-      const r = await fetch('/api/stats');
-      const d = await r.json();
-      document.getElementById('statTotal').textContent = d.totalClients;
-      document.getElementById('statActive').textContent = d.activeClients;
-      document.getElementById('statPaused').textContent = d.pausedClients;
-      const dot = document.getElementById('statusDot');
-      const txt = document.getElementById('statusText');
+      const d = await fetch('/api/stats').then(r => r.json());
+      $('sTotal').textContent  = d.totalClients;
+      $('sActive').textContent = d.activeClients;
+      $('sPaused').textContent = d.pausedClients;
+      const dot = $('statusDot'), txt = $('statusText');
       if (d.botConnected) {
-        dot.className = 'status-dot';
+        dot.className = 'dot green';
         txt.textContent = 'البوت متصل';
       } else {
-        dot.className = 'status-dot offline';
+        dot.className = 'dot red';
         txt.textContent = 'البوت غير متصل';
       }
     } catch (e) {}
   }
 
+  /* ══ Clients ══ */
   async function fetchClients() {
     try {
-      const r = await fetch('/api/clients');
-      allClients = await r.json();
+      allClients = await fetch('/api/clients').then(r => r.json());
       renderClients(allClients);
     } catch (e) {}
   }
 
   function filterClients() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
+    const q = $('searchInput').value.toLowerCase();
     renderClients(q ? allClients.filter(c =>
       c.name.toLowerCase().includes(q) || (c.lastMessage || '').toLowerCase().includes(q)
     ) : allClients);
   }
 
-  function renderClients(clients) {
-    const container = document.getElementById('clientsList');
-    if (!clients || clients.length === 0) {
-      container.innerHTML = `<div class="empty-state"><div class="icon">💬</div><p>لا توجد محادثات بعد</p></div>`;
+  function renderClients(list) {
+    const el = $('clientsList');
+    if (!list || !list.length) {
+      el.innerHTML = `<div class="empty-box" style="padding:40px 0"><div class="eicon">💬</div><p>لا توجد محادثات بعد</p></div>`;
       return;
     }
-    container.innerHTML = clients.map(c => {
-      const initials = getInitials(c.name);
-      const badgeClass = c.paused ? 'blue' : 'green';
-      const btnClass = c.paused ? 'resume' : 'stop';
-      const btnText = c.paused ? '▶ تشغيل' : '⏸ إيقاف';
-      const selClass = selectedUserId === c.userId ? 'selected' : '';
-      const enc = encodeURIComponent(c.userId);
+    el.innerHTML = list.map(c => {
+      const enc   = encodeURIComponent(c.userId);
+      const badge = c.paused ? 'blue' : 'green';
+      const bcls  = c.paused ? 'resume' : 'stop';
+      const btxt  = c.paused ? '▶ تشغيل' : '⏸ إيقاف';
+      const sel   = selectedId === c.userId ? 'sel' : '';
       return `
-        <div class="client-item ${selClass}" onclick="selectClient('${enc}', '${c.name.replace(/'/g,"\\'")}', ${c.paused})">
-          <div class="client-avatar">
-            <div class="avatar-circle">${initials}</div>
-            <div class="status-badge ${badgeClass}"></div>
+        <div class="client-row ${sel}" onclick="selectClient('${enc}','${c.name.replace(/'/g,"\\'")}',${c.paused})">
+          <div class="av-wrap">
+            <div class="av">${initials(c.name)}</div>
+            <div class="badge ${badge}"></div>
           </div>
           <div class="client-info">
-            <div class="client-name">${c.name}</div>
-            <div class="client-preview">${c.lastMessage || ''}</div>
+            <div class="ci-name">${c.name}</div>
+            <div class="ci-preview">${c.lastMessage || ''}</div>
           </div>
           <div class="client-meta">
-            <span class="client-time">${formatTime(c.lastTime)}</span>
-            <button class="toggle-btn ${btnClass}"
-              onclick="event.stopPropagation(); togglePause('${enc}')">${btnText}</button>
+            <span class="ci-time">${fmtTime(c.lastTime)}</span>
+            <button class="tbtn ${bcls}"
+              onclick="event.stopPropagation();togglePause('${enc}')">${btxt}</button>
           </div>
         </div>`;
     }).join('');
   }
 
   async function selectClient(enc, name, paused) {
-    selectedUserId = decodeURIComponent(enc);
-    const header = document.getElementById('chatHeader');
-    header.style.display = 'flex';
-    document.getElementById('chatAvatar').textContent = getInitials(name);
-    document.getElementById('chatName').textContent = name;
-    document.getElementById('chatSub').textContent = paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
-    await loadMessages(selectedUserId);
+    selectedId = decodeURIComponent(enc);
+    const head = $('chatHead');
+    head.style.display = 'flex';
+    $('chatAv').textContent  = initials(name);
+    $('chatName').textContent = name;
+    $('chatSub').textContent  = paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
+    await loadMsgs(selectedId);
     renderClients(allClients);
   }
 
-  async function loadMessages(userId) {
+  async function loadMsgs(userId) {
     try {
-      const r = await fetch('/api/clients/' + encodeURIComponent(userId) + '/messages');
-      const msgs = await r.json();
-      const container = document.getElementById('chatMessages');
-      if (!msgs || msgs.length === 0) {
-        container.innerHTML = `<div class="empty-chat"><div class="icon">💬</div><p>لا توجد رسائل</p></div>`;
+      const msgs = await fetch('/api/clients/' + encodeURIComponent(userId) + '/messages').then(r => r.json());
+      const el = $('chatMsgs');
+      if (!msgs || !msgs.length) {
+        el.innerHTML = `<div class="empty-box"><div class="eicon">💬</div><p>لا توجد رسائل</p></div>`;
         return;
       }
-      container.innerHTML = msgs.map(m => {
-        const cls = m.fromBot ? 'bot' : 'user';
-        const label = m.fromBot ? '🤖 عبدالله' : '👤 العميل';
-        return `<div class="message-bubble ${cls}">${m.text}<span class="msg-time">${label} · ${formatTime(m.time)}</span></div>`;
+      el.innerHTML = msgs.map(m => {
+        const cls = m.fromBot ? 'bot' : 'usr';
+        const lbl = m.fromBot ? '🤖 عبدالله' : '👤 العميل';
+        return `<div class="bubble ${cls}">${m.text}<span class="btime">${lbl} · ${fmtTime(m.time)}</span></div>`;
       }).join('');
-      container.scrollTop = container.scrollHeight;
+      el.scrollTop = el.scrollHeight;
     } catch (e) {}
   }
 
   async function togglePause(enc) {
     try {
-      const r = await fetch('/api/clients/' + enc + '/toggle-pause', { method: 'POST' });
-      const d = await r.json();
+      const d = await fetch('/api/clients/' + enc + '/toggle-pause', { method: 'POST' }).then(r => r.json());
       showToast(d.paused ? '🔵 تم إيقاف البوت عن هذا العميل' : '🟢 تم تشغيل البوت للعميل');
-      if (selectedUserId === decodeURIComponent(enc)) {
-        document.getElementById('chatSub').textContent = d.paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
+      if (selectedId === decodeURIComponent(enc)) {
+        $('chatSub').textContent = d.paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
       }
       await fetchClients();
       await fetchStats();
     } catch (e) { showToast('حدث خطأ، حاول مرة ثانية'); }
   }
 
+  /* ══ Knowledge ══ */
+  function updateChar(sec) {
+    const len = $('ta-' + sec).value.length;
+    $('cc-' + sec).textContent = len.toLocaleString('ar') + ' حرف';
+  }
+
+  function updateStatus(sec, text) {
+    const el = $('ks-' + sec);
+    if (text && text.trim()) {
+      el.className = 'know-status has-data';
+      el.textContent = '✅ يحتوي على بيانات (' + text.trim().split('\n').length + ' سطر)';
+    } else {
+      el.className = 'know-status';
+      el.textContent = '⬜ لا يوجد محتوى';
+    }
+  }
+
   async function loadKnowledge() {
     try {
-      const r = await fetch('/api/knowledge');
-      const d = await r.json();
-      document.getElementById('knowledgeText').value = d.text || '';
+      const d = await fetch('/api/knowledge').then(r => r.json());
+      ['offers','instructions','faqs'].forEach(sec => {
+        const val = d[sec] || '';
+        $('ta-' + sec).value = val;
+        updateChar(sec);
+        updateStatus(sec, val);
+      });
     } catch (e) {}
   }
 
-  async function saveKnowledge() {
-    const text = document.getElementById('knowledgeText').value;
-    const btn = document.getElementById('saveBtn');
+  async function saveSection(sec) {
+    const text = $('ta-' + sec).value;
+    const btn  = $('bs-' + sec);
     try {
-      await fetch('/api/knowledge', {
+      await fetch('/api/knowledge/' + sec, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
       });
       btn.textContent = '✅ تم الحفظ';
-      btn.className = 'save-btn saved';
-      showToast('✅ تم حفظ المعلومات — البوت يعرفها الآن');
+      btn.className   = 'btn-save saved';
+      updateStatus(sec, text);
+      showToast('✅ تم الحفظ — البوت يعرف المعلومات الجديدة');
       setTimeout(() => {
-        btn.textContent = '💾 حفظ المعلومات';
-        btn.className = 'save-btn';
-      }, 2500);
-    } catch (e) { showToast('حدث خطأ في الحفظ'); }
+        btn.textContent = '💾 حفظ';
+        btn.className   = 'btn-save';
+      }, 2400);
+    } catch (e) { showToast('خطأ في الحفظ، حاول مرة ثانية'); }
   }
 
+  async function clearSection(sec) {
+    if (!confirm('هل تريد حذف محتوى هذا القسم؟')) return;
+    try {
+      await fetch('/api/knowledge/' + sec, { method: 'DELETE' });
+      $('ta-' + sec).value = '';
+      updateChar(sec);
+      updateStatus(sec, '');
+      showToast('🗑 تم حذف المحتوى');
+    } catch (e) { showToast('خطأ في الحذف'); }
+  }
+
+  /* ══ Refresh loop ══ */
   async function refresh() {
     await fetchStats();
     await fetchClients();
-    if (selectedUserId) await loadMessages(selectedUserId);
+    if (selectedId) await loadMsgs(selectedId);
   }
 
   loadKnowledge();

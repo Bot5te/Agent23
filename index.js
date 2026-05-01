@@ -27,7 +27,7 @@ const IEFADA_SUMMARY_API = "https://www.iefada.com/api/v1/website/global-summary
 const IEFADA_COURSE_API = "https://www.iefada.com/api/v1/website/courses/{slug}";
 const IEFADA_URL = "https://www.iefada.com";
 const LOCAL_COURSES_FILE = "all_courses_details.json";
-const CUSTOM_KNOWLEDGE_FILE = "custom_knowledge.txt";
+const CUSTOM_KNOWLEDGE_FILE = "custom_knowledge.json";
 const PAUSED_USERS_FILE = "paused_users.json";
 
 const MAX_HISTORY = 4;
@@ -103,19 +103,36 @@ function updateClientData(userId, name, text, fromBot = false) {
 
 global.qrCodeUrl = null;
 
-// ==================== المعرفة المخصصة ====================
+// ==================== المعرفة المخصصة (أقسام) ====================
 
-function loadCustomKnowledge() {
+const KNOWLEDGE_SECTIONS = {
+  offers:       "عروض وخصومات",
+  instructions: "تعليمات خاصة",
+  faqs:         "أسئلة شائعة",
+};
+
+function loadKnowledgeData() {
   try {
     if (fs.existsSync(CUSTOM_KNOWLEDGE_FILE)) {
-      return fs.readFileSync(CUSTOM_KNOWLEDGE_FILE, "utf-8").trim();
+      const raw = fs.readFileSync(CUSTOM_KNOWLEDGE_FILE, "utf-8");
+      // دعم الملف القديم .txt إن وُجد كنص عادي
+      if (raw.trim().startsWith("{")) return JSON.parse(raw);
     }
   } catch (e) {}
-  return "";
+  return { offers: "", instructions: "", faqs: "" };
 }
 
-function saveCustomKnowledge(text) {
-  fs.writeFileSync(CUSTOM_KNOWLEDGE_FILE, text, "utf-8");
+function saveKnowledgeData(data) {
+  fs.writeFileSync(CUSTOM_KNOWLEDGE_FILE, JSON.stringify(data, null, 2), "utf-8");
+}
+
+function loadCustomKnowledge() {
+  const data = loadKnowledgeData();
+  const parts = [];
+  if (data.offers?.trim())       parts.push(`[العروض والخصومات]\n${data.offers.trim()}`);
+  if (data.instructions?.trim()) parts.push(`[تعليمات خاصة]\n${data.instructions.trim()}`);
+  if (data.faqs?.trim())         parts.push(`[أسئلة شائعة]\n${data.faqs.trim()}`);
+  return parts.join("\n\n");
 }
 
 // ==================== خرائط الكلمات المفتاحية ====================
@@ -502,15 +519,28 @@ app.post("/api/clients/:userId/toggle-pause", (req, res) => {
   }
 });
 
-// المعرفة المخصصة
+// المعرفة المخصصة — أقسام
 app.get("/api/knowledge", (req, res) => {
-  res.json({ text: loadCustomKnowledge() });
+  res.json(loadKnowledgeData());
 });
 
-app.post("/api/knowledge", (req, res) => {
+app.post("/api/knowledge/:section", (req, res) => {
+  const { section } = req.params;
+  if (!KNOWLEDGE_SECTIONS[section]) return res.status(400).json({ error: "قسم غير موجود" });
   const { text } = req.body;
   if (typeof text !== "string") return res.status(400).json({ error: "invalid" });
-  saveCustomKnowledge(text);
+  const data = loadKnowledgeData();
+  data[section] = text;
+  saveKnowledgeData(data);
+  res.json({ ok: true });
+});
+
+app.delete("/api/knowledge/:section", (req, res) => {
+  const { section } = req.params;
+  if (!KNOWLEDGE_SECTIONS[section]) return res.status(400).json({ error: "قسم غير موجود" });
+  const data = loadKnowledgeData();
+  data[section] = "";
+  saveKnowledgeData(data);
   res.json({ ok: true });
 });
 
