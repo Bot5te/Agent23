@@ -19,9 +19,7 @@ const Groq = require("groq-sdk");
 
 // ==================== الإعدادات ====================
 
-const GROQ_API_KEY =
-  process.env.GROQ_API_KEY ||
-  "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";
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const IEFADA_SUMMARY_API = "https://www.iefada.com/api/v1/website/global-summary";
 const IEFADA_COURSE_API = "https://www.iefada.com/api/v1/website/courses/{slug}";
