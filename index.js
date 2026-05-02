@@ -544,20 +544,77 @@ app.get("/api/qr-status", (req, res) => {
   res.json({ hasQR: !!global.qrCodeUrl, dataUrl: global.qrCodeUrl || null });
 });
 
+// طلب كود الربط — يضع flag وينتظر ظهور QR لاعتراضه
 app.post("/api/pairing-code", async (req, res) => {
   const { ownerKey, phone } = req.body;
   const cfg = loadConfig();
   if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
   if (!phone) return res.status(400).json({ error: "أدخل رقم الهاتف" });
-  if (!sock) return res.status(503).json({ error: "البوت لم يبدأ بعد — انتظر لحظة" });
-  try {
-    const cleanPhone = phone.replace(/\D/g, "");
-    if (cleanPhone.length < 7) return res.status(400).json({ error: "رقم الهاتف غير صحيح" });
-    const code = await sock.requestPairingCode(cleanPhone);
-    res.json({ code });
-  } catch (e) {
-    res.status(500).json({ error: e?.message || "فشل طلب كود الربط" });
+
+  const cleanPhone = phone.replace(/\D/g, "");
+  if (cleanPhone.length < 7) return res.status(400).json({ error: "رقم الهاتف غير صحيح" });
+
+  // إذا البوت متصل بالفعل → لا يمكن طلب الكود
+  if (global.qrCodeUrl === undefined || (sock && !global.qrCodeUrl)) {
+    // check connection state properly
   }
+
+  // ضع الطلب المعلق وامسح أي نتيجة قديمة
+  global.pendingPairingPhone = cleanPhone;
+  global.pairingCodeResult = null;
+
+  // إذا البوت في حالة QR حالياً → سيُعالَج في الدورة التالية
+  // إذا البوت متصل → أعلم الواجهة بذلك
+  if (sock && !global.qrCodeUrl) {
+    global.pendingPairingPhone = cleanPhone; // يُحفظ للدورة التالية بعد الفصل
+    return res.status(400).json({
+      needDisconnect: true,
+      error: "البوت متصل حالياً — يجب فصله أولاً ثم إعادة الاتصال لطلب الكود"
+    });
+  }
+
+  // انتظر حتى 60 ثانية للحصول على الكود
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    if (global.pairingCodeResult) {
+      const r = global.pairingCodeResult;
+      global.pairingCodeResult = null;
+      if (r.error) return res.status(500).json({ error: r.error });
+      return res.json({ code: r.code });
+    }
+    await new Promise(r => setTimeout(r, 600));
+  }
+  global.pendingPairingPhone = null;
+  res.status(504).json({ error: "انتهت المهلة — لم يظهر رمز QR خلال 60 ثانية" });
+});
+
+// فصل البوت وإجبار إعادة الاتصال (لطلب كود الربط)
+app.post("/api/owner/disconnect", async (req, res) => {
+  const { ownerKey, phone } = req.body;
+  const cfg = loadConfig();
+  if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
+
+  if (phone) {
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (cleanPhone.length >= 7) global.pendingPairingPhone = cleanPhone;
+  }
+
+  global.pairingCodeResult = null;
+  global.qrCodeUrl = null;
+
+  try {
+    if (sock) {
+      // احذف ملفات المصادقة لإجبار تسجيل دخول جديد
+      if (fs.existsSync(AUTH_DIR)) {
+        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+      }
+      await sock.logout().catch(() => {});
+    }
+  } catch (e) {}
+
+  // إعادة الاتصال بعد ثانية
+  setTimeout(connectToWhatsApp, 1000);
+  res.json({ ok: true, message: "جاري إعادة الاتصال..." });
 });
 
 // ===== API لوحة التحكم =====
@@ -864,6 +921,23 @@ async function handleConnectionUpdate(update) {
 
   if (qr) {
     reconnectAttempts = 0;
+
+    // إذا كان هناك طلب كود ربط معلق، استخدمه بدلاً من QR
+    if (global.pendingPairingPhone) {
+      const phone = global.pendingPairingPhone;
+      global.pendingPairingPhone = null;
+      try {
+        const code = await sock.requestPairingCode(phone);
+        global.pairingCodeResult = { code, ts: Date.now() };
+        console.log(`📲 كود الربط للرقم ${phone}: ${code}`);
+      } catch (e) {
+        global.pairingCodeResult = { error: e?.message || "فشل", ts: Date.now() };
+        // fallback: generate QR anyway
+        qrcode.toDataURL(qr, (err, url) => { if (!err) global.qrCodeUrl = url; });
+      }
+      return;
+    }
+
     qrcode.toDataURL(qr, (err, url) => {
       if (!err) global.qrCodeUrl = url;
     });
