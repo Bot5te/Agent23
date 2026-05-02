@@ -950,14 +950,22 @@ async function handleConnectionUpdate(update) {
   if (connection === "close") {
     global.botConnected = false;
     const statusCode = lastDisconnect?.error?.output?.statusCode;
-    if (statusCode === 401 && fs.existsSync(AUTH_DIR)) {
-      console.log("⚠️ تم تسجيل الخروج — حذف بيانات المصادقة");
-      fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-    }
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+    const reason = lastDisconnect?.error?.message || statusCode || "unknown";
+    console.log(`🔴 انقطع الاتصال — سبب: ${reason}`);
+
+    if (statusCode === 401) {
+      // تسجيل خروج من واتساب → احذف المصادقة ولا تعد الاتصال
+      if (fs.existsSync(AUTH_DIR)) {
+        console.log("⚠️ تم تسجيل الخروج — حذف بيانات المصادقة");
+        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+      }
+      console.log("ℹ️ يجب الربط من جديد من لوحة المالك");
+    } else if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
       reconnectAttempts++;
       console.log(`🔄 إعادة محاولة الاتصال #${reconnectAttempts} خلال 15 ثانية...`);
       setTimeout(connectToWhatsApp, 15000);
+    } else {
+      console.log("❌ تجاوز الحد الأقصى لمحاولات الاتصال — انتظر تدخل يدوي");
     }
   }
 }
@@ -1024,6 +1032,13 @@ async function connectToWhatsApp() {
 // اتصال خاص بوضع كود الربط
 async function connectWithPairingCode(phone) {
   console.log(`📲 بدء الاتصال بوضع كود الربط للرقم: ${phone}`);
+
+  // أغلق أي socket موجود قبل البدء
+  if (sock) {
+    try { sock.ev.removeAllListeners(); sock.ws?.close(); } catch (_) {}
+    sock = null;
+  }
+
   try {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
     let version;
@@ -1049,12 +1064,10 @@ async function connectWithPairingCode(phone) {
 
     sock.ev.on("creds.update", saveCreds);
     sock.ev.on("messages.upsert", handleMessagesUpsert);
-
-    // ربط LID
     registerLidHandler();
 
     let pairingCodeRequested = false;
-    let pairingSucceeded = false;
+    let pairingSucceeded    = false;
 
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
@@ -1062,10 +1075,13 @@ async function connectWithPairingCode(phone) {
       // عند ظهور QR = الـ socket اتصل بخوادم واتساب → نطلب الكود
       if (qr && !pairingCodeRequested) {
         pairingCodeRequested = true;
-        // احفظ QR للعرض في /qr
         qrcode.toDataURL(qr, (err, url) => { if (!err) global.qrCodeUrl = url; });
         try {
-          const code = await sock.requestPairingCode(phone);
+          const rawCode = await sock.requestPairingCode(phone);
+          // نعرض الكود بصيغة XXXX-XXXX لتسهيل الإدخال في واتساب
+          const code = rawCode && rawCode.length === 8 && !rawCode.includes("-")
+            ? rawCode.slice(0, 4) + "-" + rawCode.slice(4)
+            : rawCode;
           global.pairingCodeResult = { code, ts: Date.now() };
           console.log(`✅ كود الربط: ${code}`);
         } catch (e) {
@@ -1080,24 +1096,36 @@ async function connectWithPairingCode(phone) {
         global.pairingConnecting = false;
         global.qrCodeUrl = null;
         global.botConnected = true;
-        try { await sock.sendPresenceUpdate("unavailable"); } catch (e) {}
+        try { await sock.sendPresenceUpdate("unavailable"); } catch (_) {}
         console.log("🟢 البوت متصل بواتساب (pairing code)");
       }
 
       if (connection === "close") {
         global.botConnected = false;
         const statusCode = lastDisconnect?.error?.output?.statusCode;
+        const reason = lastDisconnect?.error?.message || statusCode || "unknown";
+        console.log(`🔴 انقطع الاتصال (pairing) — سبب: ${reason}`);
+
         if (statusCode === 401 && fs.existsSync(AUTH_DIR)) {
           console.log("⚠️ تم تسجيل الخروج — حذف بيانات المصادقة");
           fs.rmSync(AUTH_DIR, { recursive: true, force: true });
         }
-        // إذا نجح الربط سابقاً → أعد الاتصال الطبيعي
-        if (pairingSucceeded && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-          reconnectAttempts++;
-          console.log(`🔄 إعادة الاتصال #${reconnectAttempts} خلال 15 ثانية...`);
-          setTimeout(connectToWhatsApp, 15000);
+
+        if (pairingSucceeded) {
+          // الربط نجح سابقاً → أعد الاتصال الطبيعي
+          if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+            reconnectAttempts++;
+            console.log(`🔄 إعادة الاتصال #${reconnectAttempts} خلال 15 ثانية...`);
+            setTimeout(connectToWhatsApp, 15000);
+          }
+        } else if (pairingCodeRequested && statusCode !== 401) {
+          // الكود أُرسل لكن المصادقة لم تكتمل → أعد المحاولة بكود جديد بعد 3 ثوانٍ
+          console.log("🔄 إعادة الاتصال للحصول على كود ربط جديد...");
+          global.pairingConnecting = true;
+          setTimeout(() => connectWithPairingCode(phone), 3000);
+        } else {
+          global.pairingConnecting = false;
         }
-        // إذا لم ينجح الربط بعد → لا تعيد الاتصال تلقائياً
       }
     });
   } catch (e) {
