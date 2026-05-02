@@ -1019,7 +1019,7 @@
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ ownerKey: OWN_KEY, phone }),
-        signal: AbortSignal.timeout(65000)
+        signal: AbortSignal.timeout(82000)
       });
       const d = await r.json();
       $('pairWaiting').style.display='none';
@@ -1047,25 +1047,42 @@
     if(!confirm('سيتم فصل البوت وحذف بيانات الاتصال الحالية. هل أنت متأكد؟'))return;
     btn.disabled=true; btn.textContent='جاري الفصل...';
     $('pairWaiting').style.display='block';
-    $('pairWaitMsg').textContent='جاري فصل البوت وطلب الكود — انتظر حتى 60 ثانية...';
+    $('pairWaitMsg').textContent='جاري فصل البوت وطلب الكود — انتظر حتى 90 ثانية...';
+
+    const errEl = $('pairError');
     try{
-      const r = await fetch('/api/owner/disconnect',{
+      // خطوة ١: اطلب الفصل وبدء الاتصال بوضع الكود
+      const r1 = await fetch('/api/owner/disconnect',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ ownerKey: OWN_KEY, phone }),
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(8000)
       });
-      if(!r.ok){ const d=await r.json(); throw new Error(d.error||'فشل'); }
+      if(!r1.ok){ const d=await r1.json(); throw new Error(d.error||'فشل الفصل'); }
+
+      // خطوة ٢: انتظر النتيجة عبر polling endpoint
+      $('pairWaitMsg').textContent='تم الفصل — جاري توليد الكود، انتظر...';
+      const r2 = await fetch('/api/pairing-code',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ownerKey: OWN_KEY, phone }),
+        signal: AbortSignal.timeout(88000)
+      });
+      const d = await r2.json();
+      $('pairWaiting').style.display='none';
+      if(!r2.ok){ errEl.textContent=d.error||'فشل توليد الكود'; errEl.style.display='block'; }
+      else{
+        $('pairCodeDisplay').textContent = d.code;
+        $('pairCodeBox').style.display='block';
+        showToast('✅ تم إنشاء كود الربط');
+      }
     }catch(e){
-      // الفصل ربما نجح لكن الطلب انتهى — استمر بالانتظار
+      $('pairWaiting').style.display='none';
+      errEl.textContent = e.name==='TimeoutError' ? 'انتهت المهلة — حاول مجدداً' : ('خطأ: '+(e.message||'غير معروف'));
+      errEl.style.display='block';
+    }finally{
+      btn.disabled=false; btn.textContent='🔌 فصل وطلب الكود';
     }
-
-    // انتظر 3 ثوانٍ ثم اطلب الكود
-    await new Promise(r=>setTimeout(r,3000));
-    btn.disabled=false; btn.textContent='🔌 فصل وطلب الكود';
-
-    // استدعِ requestPairCode مجدداً (البوت الآن في وضع QR)
-    await requestPairCode();
   }
 
   /* ── INIT ── */
