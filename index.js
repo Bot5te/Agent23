@@ -75,15 +75,18 @@ function loadContacts() {
 }
 
 function upsertContact(userId, name) {
-  const phone = userId.replace("@s.whatsapp.net", "");
+  const jid      = userId;                          // الـ JID الكامل كـ "966501234567@s.whatsapp.net" أو "265399014846598@lid"
+  const rawNum   = userId.split("@")[0];            // الرقم الخام بدون لاحقة
+  const phone    = "+" + rawNum;                    // رقم الهاتف مع +
   const contacts = loadContacts();
-  const idx = contacts.findIndex(c => c.phone === phone);
-  const now = Date.now();
+  const idx      = contacts.findIndex(c => c.jid === jid);
+  const now      = Date.now();
   if (idx >= 0) {
     contacts[idx].lastContact = now;
-    if (name && name !== phone) contacts[idx].name = name;
+    contacts[idx].phone = phone;                    // تحديث الرقم إن تغيّر
+    if (name && name !== rawNum) contacts[idx].name = name;
   } else {
-    contacts.push({ phone, name: name || phone, firstContact: now, lastContact: now });
+    contacts.push({ jid, phone, name: name || phone, firstContact: now, lastContact: now });
   }
   fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
 }
@@ -660,6 +663,14 @@ app.get("/api/owner/contacts/download", (req, res) => {
   res.send(JSON.stringify(contacts, null, 2));
 });
 
+// قراءة الإعدادات (للمالك فقط)
+app.get("/api/owner/get-config", (req, res) => {
+  const { key } = req.query;
+  const cfg = loadConfig();
+  if (key !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
+  res.json({ dashboardPassword: cfg.dashboardPassword });
+});
+
 // تغيير باسورد خدمة العملاء
 app.post("/api/owner/change-cs-password", (req, res) => {
   const { ownerKey, newPassword } = req.body;
@@ -680,8 +691,11 @@ app.post("/api/owner/broadcast", async (req, res) => {
   if (!sock) return res.status(503).json({ error: "البوت غير متصل" });
 
   const results = [];
-  for (const phone of phones) {
-    const jid = phone.replace(/\D/g, "") + "@s.whatsapp.net";
+  for (const identifier of phones) {
+    // استخدم JID مباشرةً إن أُرسل، وإلا أنشئه من الرقم
+    const jid = identifier.includes("@")
+      ? identifier
+      : identifier.replace(/\D/g, "") + "@s.whatsapp.net";
     try {
       if (withButtons) {
         try {
@@ -699,9 +713,9 @@ app.post("/api/owner/broadcast", async (req, res) => {
       } else {
         await sock.sendMessage(jid, { text: message });
       }
-      results.push({ phone, ok: true });
+      results.push({ id: identifier, ok: true });
     } catch (e) {
-      results.push({ phone, ok: false, error: e?.message || "فشل" });
+      results.push({ id: identifier, ok: false, error: e?.message || "فشل" });
     }
     await new Promise(r => setTimeout(r, 600));
   }

@@ -6,266 +6,384 @@
   <title>لوحة المالك — إفادة</title>
   <style>
     :root{
-      --bg:#0d0e12; --s1:#13151d; --s2:#1b1e2a; --s3:#222636;
-      --border:#2a2f45; --bs:#1e2131;
-      --gold:#f5c518; --gold-d:#c9a012; --gold-g:rgba(245,197,24,.18); --gold-s:rgba(245,197,24,.08);
-      --green:#22c55e; --green-s:rgba(34,197,94,.12);
-      --blue:#3b82f6; --blue-s:rgba(59,130,246,.12);
-      --red:#ef4444; --red-s:rgba(239,68,68,.12);
-      --purple:#a855f7; --purple-s:rgba(168,85,247,.12);
-      --text:#eef0f6; --t2:#a0a8c0; --t3:#5c6380;
+      --bg:#0a0b0f; --s1:#11131b; --s2:#181a25; --s3:#1f2230;
+      --border:#252838; --bs:#1c1f2e;
+      --gold:#f5c518; --gold-d:#c9a012; --gold-g:rgba(245,197,24,.2); --gold-s:rgba(245,197,24,.07);
+      --green:#22c55e; --green-s:rgba(34,197,94,.1);
+      --blue:#3b82f6;  --blue-s:rgba(59,130,246,.1);
+      --red:#ef4444;   --red-s:rgba(239,68,68,.1);
+      --purple:#a855f7;--purple-s:rgba(168,85,247,.1);
+      --text:#e8eaf2; --t2:#9097b5; --t3:#4d5470;
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Cairo',Tahoma,Arial,sans-serif;min-height:100vh}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Cairo',Tahoma,Arial,sans-serif;min-height:100vh;font-size:14px}
+
+    /* scrollbar */
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
     /* ── HEADER ── */
     header{
-      background:var(--s1);border-bottom:1px solid var(--bs);
-      padding:0 28px;height:64px;
+      background:var(--s1);
+      border-bottom:1px solid var(--bs);
+      padding:0 32px;height:62px;
       display:flex;align-items:center;justify-content:space-between;
-      position:sticky;top:0;z-index:100;
+      position:sticky;top:0;z-index:200;
+      backdrop-filter:blur(10px);
     }
-    .logo{display:flex;align-items:center;gap:12px}
-    .logo-mark{width:38px;height:38px;background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 14px var(--gold-g)}
-    .logo-text strong{display:block;font-size:15px;font-weight:800}
-    .logo-text span{font-size:11px;color:var(--t3)}
-    .owner-badge{background:linear-gradient(135deg,#f5c518,#e0a800);color:#0d0e12;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+    .logo{display:flex;align-items:center;gap:13px}
+    .logo-mark{
+      width:40px;height:40px;background:var(--gold);border-radius:11px;
+      display:flex;align-items:center;justify-content:center;font-size:21px;
+      box-shadow:0 2px 16px var(--gold-g);flex-shrink:0;
+    }
+    .logo-text strong{display:block;font-size:15px;font-weight:800;letter-spacing:.2px}
+    .logo-text span{font-size:11px;color:var(--t3);margin-top:1px;display:block}
     .header-r{display:flex;align-items:center;gap:10px}
-    .pill{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:500}
+    .owner-badge{
+      background:linear-gradient(135deg,var(--gold),#d4a017);
+      color:#0a0b0f;font-size:10.5px;font-weight:800;
+      padding:4px 11px;border-radius:20px;letter-spacing:.8px;
+    }
+    .pill{
+      display:flex;align-items:center;gap:7px;
+      background:var(--s2);border:1px solid var(--border);
+      border-radius:20px;padding:6px 14px;font-size:12.5px;font-weight:500;
+    }
     .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-    .dot.g{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+    .dot.g{background:var(--green);box-shadow:0 0 7px var(--green);animation:blink 2s infinite}
     .dot.r{background:var(--red)}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
 
     /* ── STATS ── */
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:22px 28px 6px}
-    .stat{background:var(--s1);border:1px solid var(--bs);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden}
-    .stat::before{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--c,var(--gold));border-radius:0 14px 14px 0}
-    .stat.c-gold{--c:var(--gold)} .stat.c-green{--c:var(--green)} .stat.c-blue{--c:var(--blue)} .stat.c-purple{--c:var(--purple)}
-    .stat-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-    .stat.c-gold .stat-icon{background:var(--gold-s)} .stat.c-green .stat-icon{background:var(--green-s)} .stat.c-blue .stat-icon{background:var(--blue-s)} .stat.c-purple .stat-icon{background:var(--purple-s)}
-    .stat-b h3{font-size:30px;font-weight:800;line-height:1}
-    .stat.c-gold .stat-b h3{color:var(--gold)} .stat.c-green .stat-b h3{color:var(--green)} .stat.c-blue .stat-b h3{color:var(--blue)} .stat.c-purple .stat-b h3{color:var(--purple)}
-    .stat-b p{font-size:12px;color:var(--t2);margin-top:4px}
+    .stats{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+      padding:24px 32px 8px;
+    }
+    .stat{
+      background:var(--s1);border:1px solid var(--bs);
+      border-radius:16px;padding:20px;
+      display:flex;align-items:center;gap:14px;
+      position:relative;overflow:hidden;
+      transition:border-color .2s,transform .2s;
+    }
+    .stat:hover{border-color:rgba(245,197,24,.2);transform:translateY(-1px)}
+    .stat::after{
+      content:'';position:absolute;top:0;right:0;
+      width:3px;height:100%;
+      background:var(--c,var(--gold));
+      border-radius:0 16px 16px 0;
+    }
+    .stat.c-gold{--c:var(--gold)} .stat.c-green{--c:var(--green)}
+    .stat.c-blue{--c:var(--blue)} .stat.c-purple{--c:var(--purple)}
+    .stat-icon{
+      width:48px;height:48px;border-radius:13px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;flex-shrink:0;
+    }
+    .stat.c-gold  .stat-icon{background:var(--gold-s)}
+    .stat.c-green .stat-icon{background:var(--green-s)}
+    .stat.c-blue  .stat-icon{background:var(--blue-s)}
+    .stat.c-purple.stat-icon{background:var(--purple-s)}
+    .stat-b h3{font-size:32px;font-weight:900;line-height:1;letter-spacing:-.5px}
+    .stat.c-gold   .stat-b h3{color:var(--gold)}
+    .stat.c-green  .stat-b h3{color:var(--green)}
+    .stat.c-blue   .stat-b h3{color:var(--blue)}
+    .stat.c-purple .stat-b h3{color:var(--purple)}
+    .stat-b p{font-size:12px;color:var(--t2);margin-top:5px}
 
-    /* ── CHART ── */
-    .chart-row{padding:6px 28px 6px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .chart-card{background:var(--s1);border:1px solid var(--bs);border-radius:14px;padding:18px 20px}
-    .ch-title{font-size:13px;font-weight:700;color:var(--t2);margin-bottom:14px;display:flex;align-items:center;gap:7px}
-    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:80px}
-    .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-    .bar-fill{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--gold),var(--gold-d));min-height:4px;transition:height .5s ease}
-    .bar-label{font-size:10px;color:var(--t3);white-space:nowrap}
+    /* ── INFO ROW ── */
+    .info-row{
+      display:grid;grid-template-columns:1fr 1fr;gap:14px;
+      padding:0 32px 8px;
+    }
+    .info-card{background:var(--s1);border:1px solid var(--bs);border-radius:16px;padding:20px}
+    .ic-title{font-size:12.5px;font-weight:700;color:var(--t2);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+    .bar-chart{display:flex;align-items:flex-end;gap:8px;height:76px}
+    .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+    .bar-fill{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--gold),var(--gold-d));min-height:3px}
+    .bar-label{font-size:9.5px;color:var(--t3)}
     .bar-val{font-size:10px;color:var(--t2);font-weight:700}
 
-    .bot-info{display:flex;flex-direction:column;gap:10px}
-    .bi-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--s2);border-radius:9px}
-    .bi-row span:first-child{font-size:12.5px;color:var(--t2)}
+    .bi-list{display:flex;flex-direction:column;gap:9px}
+    .bi-row{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:9px 13px;background:var(--s2);border-radius:10px;
+      border:1px solid var(--bs);
+    }
+    .bi-lbl{font-size:12.5px;color:var(--t2)}
     .bi-val{font-size:13px;font-weight:700}
     .bi-val.g{color:var(--green)} .bi-val.b{color:var(--blue)} .bi-val.gold{color:var(--gold)}
 
     /* ── TABS ── */
-    .tab-bar{display:flex;gap:4px;padding:14px 28px 0}
-    .tab{padding:9px 22px;font-size:13.5px;font-weight:600;color:var(--t3);background:none;border:1px solid transparent;border-radius:10px 10px 0 0;cursor:pointer;font-family:inherit;transition:all .2s}
+    .tab-bar{display:flex;gap:3px;padding:14px 32px 0}
+    .tab{
+      padding:9px 22px;font-size:13px;font-weight:600;color:var(--t3);
+      background:none;border:1px solid transparent;
+      border-radius:10px 10px 0 0;cursor:pointer;
+      font-family:inherit;transition:all .2s;
+    }
     .tab.active{color:var(--gold);background:var(--s1);border-color:var(--bs);border-bottom-color:var(--s1)}
     .tab:hover:not(.active){color:var(--t2)}
-    .tab-body{background:var(--s1);border:1px solid var(--bs);border-radius:0 14px 14px 14px;margin:0 28px 28px;padding:26px}
+    .tab-body{
+      background:var(--s1);border:1px solid var(--bs);
+      border-radius:0 16px 16px 16px;
+      margin:0 32px 32px;padding:28px;
+    }
     .tab-pane{display:none} .tab-pane.active{display:block}
 
     /* ── BROADCAST ── */
-    .bc-layout{display:grid;grid-template-columns:1fr 380px;gap:22px}
+    .bc-layout{display:grid;grid-template-columns:1fr 360px;gap:22px}
     .bc-left{display:flex;flex-direction:column;gap:16px}
     .bc-right{display:flex;flex-direction:column;gap:12px}
+    .section-lbl{font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 
-    .section-title{font-size:13px;font-weight:700;color:var(--t2);margin-bottom:10px;display:flex;align-items:center;gap:7px}
-
-    .msg-compose{
-      background:var(--s2);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;
-    }
-    .msg-compose textarea{
-      width:100%;min-height:160px;background:transparent;border:none;
+    .compose{background:var(--s2);border:1.5px solid var(--border);border-radius:13px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+    .compose:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-s)}
+    .compose textarea{
+      width:100%;min-height:155px;background:transparent;border:none;
       color:var(--text);padding:16px;font-size:14px;font-family:inherit;
       resize:vertical;outline:none;line-height:1.7;
     }
-    .msg-compose textarea::placeholder{color:var(--t3)}
-    .msg-compose:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-s)}
-    .compose-footer{
-      padding:10px 14px;border-top:1px solid var(--bs);
+    .compose textarea::placeholder{color:var(--t3);font-size:13px}
+    .compose-foot{
+      padding:9px 14px;border-top:1px solid var(--bs);
       display:flex;align-items:center;justify-content:space-between;
       background:var(--s3);
     }
-    .char-info{font-size:11.5px;color:var(--t3)}
+    .compose-foot span{font-size:11.5px;color:var(--t3)}
 
-    .toggle-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border:1px solid var(--bs);border-radius:11px;cursor:pointer;transition:border-color .2s}
-    .toggle-row:hover{border-color:rgba(245,197,24,.3)}
-    .toggle-info{flex:1}
-    .toggle-info strong{display:block;font-size:13px;font-weight:700}
-    .toggle-info span{font-size:11px;color:var(--t3)}
-    .toggle{width:42px;height:24px;background:var(--s3);border-radius:12px;position:relative;transition:background .2s;flex-shrink:0;cursor:pointer;border:1px solid var(--border)}
-    .toggle.on{background:var(--gold)}
-    .toggle::after{content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
-    .toggle.on::after{transform:translateX(-18px)}
-
-    .preview-box{
-      background:var(--s2);border:1px solid var(--bs);border-radius:12px;padding:14px;
-      font-size:13px;line-height:1.65;color:var(--t2);min-height:80px;
-      position:relative;
+    .toggle-card{
+      display:flex;align-items:center;gap:12px;
+      padding:13px 15px;background:var(--s2);border:1px solid var(--border);
+      border-radius:12px;cursor:pointer;transition:border-color .2s;
     }
-    .preview-box .pv-label{font-size:10.5px;color:var(--t3);margin-bottom:7px;display:flex;align-items:center;gap:5px}
-    .preview-msg{color:var(--text);white-space:pre-wrap;word-break:break-word}
-    .pv-btns{display:flex;gap:6px;margin-top:10px}
-    .pv-btn{flex:1;padding:7px;background:var(--gold-s);border:1px solid rgba(245,197,24,.25);border-radius:8px;font-size:12px;font-weight:600;color:var(--gold);text-align:center}
+    .toggle-card:hover{border-color:rgba(245,197,24,.3)}
+    .tc-icon{font-size:22px;flex-shrink:0}
+    .tc-info{flex:1}
+    .tc-info strong{display:block;font-size:13px;font-weight:700}
+    .tc-info span{font-size:11px;color:var(--t3);line-height:1.5}
+    .sw{width:42px;height:24px;background:var(--s3);border-radius:12px;position:relative;flex-shrink:0;border:1px solid var(--border);transition:background .2s}
+    .sw.on{background:var(--gold)}
+    .sw::after{content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+    .sw.on::after{transform:translateX(-18px)}
+
+    .preview{background:var(--s2);border:1px solid var(--bs);border-radius:12px;padding:14px}
+    .pv-lbl{font-size:10.5px;color:var(--t3);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+    .pv-bubble{
+      background:var(--gold-s);border:1px solid rgba(245,197,24,.15);
+      border-radius:12px 12px 4px 12px;padding:11px 14px;
+      font-size:13.5px;line-height:1.65;color:var(--text);
+      white-space:pre-wrap;word-break:break-word;min-height:44px;
+    }
+    .pv-bubble.empty{color:var(--t3);font-size:12.5px}
+    .pv-btns{display:flex;gap:7px;margin-top:9px}
+    .pv-btn{flex:1;padding:8px;background:var(--s3);border:1px solid var(--border);border-radius:9px;font-size:12px;font-weight:700;color:var(--t2);text-align:center}
+
+    .bc-progress{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;display:none;margin-top:4px}
+    .bc-progress.show{display:block}
+    .bc-pb{height:100%;background:var(--gold);border-radius:3px;width:0;transition:width .4s}
+
+    .bc-result{display:none;margin-top:4px;padding:11px 14px;border-radius:10px;font-size:13px}
+    .bc-result.show{display:block}
+    .bc-result.ok{background:var(--green-s);border:1px solid rgba(34,197,94,.22);color:var(--green)}
+    .bc-result.err{background:var(--red-s);border:1px solid rgba(239,68,68,.22);color:var(--red)}
 
     .send-btn{
-      padding:14px;background:var(--gold);color:#0d0e12;border:none;border-radius:11px;
-      font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
-      display:flex;align-items:center;justify-content:center;gap:10px;
-      transition:opacity .2s,box-shadow .2s;
-      box-shadow:0 4px 20px rgba(245,197,24,.25);
+      padding:14px;background:var(--gold);color:#0a0b0f;border:none;
+      border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;
+      font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;
+      transition:opacity .2s,box-shadow .2s,transform .1s;
+      box-shadow:0 4px 18px rgba(245,197,24,.22);
     }
-    .send-btn:hover:not(:disabled){opacity:.92;box-shadow:0 6px 28px rgba(245,197,24,.35)}
-    .send-btn:disabled{opacity:.5;cursor:not-allowed}
+    .send-btn:hover:not(:disabled){opacity:.91;box-shadow:0 6px 26px rgba(245,197,24,.32)}
+    .send-btn:active:not(:disabled){transform:scale(.98)}
+    .send-btn:disabled{opacity:.45;cursor:not-allowed}
 
     /* contacts picker */
-    .cpicker{background:var(--s2);border:1px solid var(--bs);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;max-height:420px}
-    .cpicker-head{padding:11px 14px;border-bottom:1px solid var(--bs);display:flex;align-items:center;gap:8px;background:var(--s3)}
-    .cpicker-search{
-      flex:1;background:var(--s2);border:1px solid var(--border);border-radius:8px;
-      color:var(--text);padding:7px 12px;font-size:12.5px;outline:none;font-family:inherit;
-      transition:border-color .2s;
+    .cpicker{
+      background:var(--s2);border:1px solid var(--bs);
+      border-radius:13px;overflow:hidden;display:flex;
+      flex-direction:column;max-height:430px;
     }
-    .cpicker-search:focus{border-color:var(--gold)}
-    .cpicker-search::placeholder{color:var(--t3)}
-    .sel-all-btn{
-      padding:6px 11px;background:var(--gold-s);border:1px solid rgba(245,197,24,.25);
+    .cp-head{padding:10px 12px;border-bottom:1px solid var(--bs);display:flex;align-items:center;gap:8px;background:var(--s3)}
+    .cp-search{
+      flex:1;background:var(--s2);border:1px solid var(--border);
+      border-radius:8px;color:var(--text);padding:7px 12px;
+      font-size:12.5px;outline:none;font-family:inherit;transition:border-color .2s;
+    }
+    .cp-search:focus{border-color:var(--gold)}
+    .cp-search::placeholder{color:var(--t3)}
+    .cp-btn{
+      padding:6px 11px;background:var(--gold-s);border:1px solid rgba(245,197,24,.22);
       border-radius:7px;color:var(--gold);font-size:11.5px;font-weight:700;
       cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s;
     }
-    .sel-all-btn:hover{background:rgba(245,197,24,.15)}
-    .cpicker-list{flex:1;overflow-y:auto;padding:6px}
-    .cpicker-list::-webkit-scrollbar{width:3px}
-    .cpicker-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-    .cpicker-empty{padding:30px;text-align:center;color:var(--t3);font-size:13px}
-    .contact-item{
-      display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
-      cursor:pointer;transition:background .15s;
+    .cp-btn:hover{background:rgba(245,197,24,.14)}
+    .cp-list{flex:1;overflow-y:auto;padding:5px}
+    .cp-empty{padding:32px;text-align:center;color:var(--t3);font-size:13px}
+    .ci{
+      display:flex;align-items:center;gap:9px;padding:8px 10px;
+      border-radius:10px;cursor:pointer;transition:background .13s;
       border:1px solid transparent;margin-bottom:2px;
     }
-    .contact-item:hover{background:var(--s3)}
-    .contact-item.checked{background:var(--gold-s);border-color:rgba(245,197,24,.2)}
+    .ci:hover{background:var(--s3)}
+    .ci.on{background:var(--gold-s);border-color:rgba(245,197,24,.2)}
     .cb{
       width:18px;height:18px;border:2px solid var(--border);border-radius:5px;
       flex-shrink:0;display:flex;align-items:center;justify-content:center;
-      font-size:11px;transition:all .15s;
+      font-size:11px;transition:all .13s;
     }
-    .contact-item.checked .cb{background:var(--gold);border-color:var(--gold);color:#0d0e12}
+    .ci.on .cb{background:var(--gold);border-color:var(--gold);color:#0a0b0f;font-weight:900}
     .c-av{
       width:34px;height:34px;border-radius:50%;
-      background:linear-gradient(135deg,#2a2f45,#3a3f58);
+      background:linear-gradient(135deg,#22263a,#2e3450);
       border:1.5px solid var(--border);
       display:flex;align-items:center;justify-content:center;
-      font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0;
+      font-size:12px;font-weight:800;color:var(--gold);flex-shrink:0;
     }
-    .c-info strong{display:block;font-size:13px;font-weight:600}
-    .c-info span{font-size:11px;color:var(--t3)}
-    .sel-count{font-size:11.5px;color:var(--t3);padding:6px 10px}
-    .cpicker-footer{padding:8px 12px;border-top:1px solid var(--bs);background:var(--s3);font-size:11px;color:var(--t3);display:flex;align-items:center;justify-content:space-between}
-
-    /* result */
-    .bc-result{
-      margin-top:16px;padding:14px 16px;border-radius:11px;
-      display:none;font-size:13px;
+    .c-info strong{display:block;font-size:13px;font-weight:600;line-height:1.2}
+    .c-info .c-phone{font-size:11px;color:var(--gold);font-family:monospace;letter-spacing:.3px;direction:ltr;unicode-bidi:embed;display:block}
+    .c-info .c-lid{font-size:10px;color:var(--t3);margin-top:1px;direction:ltr;unicode-bidi:embed;display:block}
+    .cp-foot{
+      padding:8px 12px;border-top:1px solid var(--bs);background:var(--s3);
+      display:flex;align-items:center;justify-content:space-between;
     }
-    .bc-result.show{display:block}
-    .bc-result.ok{background:var(--green-s);border:1px solid rgba(34,197,94,.25);color:var(--green)}
-    .bc-result.err{background:var(--red-s);border:1px solid rgba(239,68,68,.25);color:var(--red)}
-    .bc-progress{
-      margin-top:10px;height:6px;background:var(--s2);border-radius:3px;overflow:hidden;display:none;
-    }
-    .bc-progress.show{display:block}
-    .bc-progress-bar{height:100%;background:var(--gold);border-radius:3px;width:0;transition:width .4s}
-
-    /* ── SETTINGS ── */
-    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-    .set-card{background:var(--s2);border:1px solid var(--bs);border-radius:14px;padding:22px}
-    .set-card h3{font-size:15px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-    .set-card p{font-size:12.5px;color:var(--t3);margin-bottom:18px;line-height:1.6}
-
-    .input-group{margin-bottom:13px}
-    .input-group label{display:block;font-size:12px;color:var(--t2);margin-bottom:6px;font-weight:600}
-    .input-group input{
-      width:100%;padding:11px 14px;
-      background:var(--s3);border:1.5px solid var(--border);
-      border-radius:9px;color:var(--text);font-size:14px;
-      font-family:inherit;outline:none;transition:border-color .2s;
-    }
-    .input-group input:focus{border-color:var(--gold)}
-    .input-group input::placeholder{color:var(--t3)}
-
-    .act-btn{
-      padding:11px 20px;border-radius:9px;font-size:13px;
-      font-weight:700;cursor:pointer;font-family:inherit;
-      transition:opacity .2s;
-    }
-    .act-btn.gold{background:var(--gold);color:#0d0e12;border:none}
-    .act-btn.blue{background:var(--blue-s);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
-    .act-btn:hover{opacity:.85}
-    .act-btn:disabled{opacity:.5;cursor:not-allowed}
-
-    .inline-ok{display:none;margin-top:10px;padding:9px 12px;background:var(--green-s);border:1px solid rgba(34,197,94,.25);border-radius:8px;font-size:12.5px;color:var(--green)}
-    .inline-ok.show{display:block}
+    .cp-foot span{font-size:11.5px;color:var(--t3)}
 
     /* ── CONTACTS TABLE ── */
-    .ct-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .ct-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
     .ct-search{
-      flex:1;background:var(--s2);border:1.5px solid var(--border);
-      border-radius:9px;color:var(--text);padding:9px 14px;font-size:13px;
+      flex:1;background:var(--s2);border:1.5px solid var(--border);border-radius:10px;
+      color:var(--text);padding:10px 14px;font-size:13px;
       font-family:inherit;outline:none;transition:border-color .2s;
     }
     .ct-search:focus{border-color:var(--gold)}
     .ct-search::placeholder{color:var(--t3)}
-
     .dl-btn{
-      display:flex;align-items:center;gap:7px;
-      padding:9px 18px;background:var(--gold);color:#0d0e12;
-      border:none;border-radius:9px;font-size:13px;font-weight:800;
-      cursor:pointer;font-family:inherit;transition:opacity .2s,box-shadow .2s;
-      box-shadow:0 3px 14px rgba(245,197,24,.2);
-      white-space:nowrap;
+      display:flex;align-items:center;gap:8px;
+      padding:10px 20px;background:var(--gold);color:#0a0b0f;
+      border:none;border-radius:10px;font-size:13px;font-weight:800;
+      cursor:pointer;font-family:inherit;white-space:nowrap;
+      transition:opacity .2s,box-shadow .2s;
+      box-shadow:0 3px 14px rgba(245,197,24,.18);
     }
-    .dl-btn:hover{opacity:.9;box-shadow:0 5px 20px rgba(245,197,24,.3)}
+    .dl-btn:hover{opacity:.9;box-shadow:0 5px 20px rgba(245,197,24,.28)}
 
+    .ct-wrap{background:var(--s2);border:1px solid var(--bs);border-radius:13px;overflow:hidden;max-height:500px;overflow-y:auto}
     .ct-table{width:100%;border-collapse:collapse}
     .ct-table th{
-      text-align:right;padding:10px 14px;font-size:12px;font-weight:700;
-      color:var(--t3);border-bottom:1px solid var(--bs);background:var(--s2);
+      text-align:right;padding:11px 16px;font-size:11.5px;font-weight:700;
+      color:var(--t3);border-bottom:1px solid var(--bs);
+      background:var(--s3);position:sticky;top:0;z-index:1;
+      letter-spacing:.3px;
     }
-    .ct-table th:first-child{border-radius:9px 0 0 0}
-    .ct-table th:last-child{border-radius:0 9px 0 0}
-    .ct-table td{
-      padding:11px 14px;font-size:13px;border-bottom:1px solid var(--bs);
-      vertical-align:middle;
-    }
-    .ct-table tr:hover td{background:var(--s2)}
+    .ct-table td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(37,40,56,.6);vertical-align:middle}
     .ct-table tr:last-child td{border-bottom:none}
-    .ct-wrap{background:var(--s2);border:1px solid var(--bs);border-radius:12px;overflow:hidden;max-height:480px;overflow-y:auto}
-    .ct-wrap::-webkit-scrollbar{width:3px}
-    .ct-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-    .ph-tag{font-family:monospace;font-size:12.5px;color:var(--gold);background:var(--gold-s);padding:2px 8px;border-radius:5px}
+    .ct-table tbody tr:hover td{background:rgba(245,197,24,.03)}
+    .num-badge{
+      display:inline-flex;align-items:center;gap:5px;
+      font-family:monospace;font-size:12.5px;font-weight:700;
+      color:var(--gold);background:var(--gold-s);
+      border:1px solid rgba(245,197,24,.15);
+      padding:3px 9px;border-radius:6px;
+      direction:ltr;unicode-bidi:embed;
+    }
+    .lid-tag{
+      font-family:monospace;font-size:10.5px;color:var(--t3);
+      margin-top:3px;display:block;
+      direction:ltr;unicode-bidi:embed;
+    }
+    .row-num{
+      width:36px;height:36px;border-radius:9px;background:var(--s3);
+      border:1px solid var(--bs);display:flex;align-items:center;
+      justify-content:center;font-size:12px;font-weight:700;color:var(--t3);flex-shrink:0;
+    }
+    .ct-empty{padding:40px;text-align:center;color:var(--t3);font-size:13px}
+
+    /* ── SETTINGS ── */
+    .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .set-card{background:var(--s2);border:1px solid var(--bs);border-radius:16px;padding:24px}
+    .set-card h3{font-size:15px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+    .set-card p{font-size:12.5px;color:var(--t3);margin-bottom:20px;line-height:1.65}
+
+    .inp-grp{margin-bottom:14px}
+    .inp-grp label{display:block;font-size:11.5px;color:var(--t2);margin-bottom:6px;font-weight:700;letter-spacing:.2px}
+    .inp-grp input{
+      width:100%;padding:11px 14px;
+      background:var(--s3);border:1.5px solid var(--border);
+      border-radius:10px;color:var(--text);font-size:14px;
+      font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;
+    }
+    .inp-grp input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-s)}
+    .inp-grp input::placeholder{color:var(--t3)}
+
+    .act-btn{
+      padding:11px 20px;border-radius:10px;font-size:13px;
+      font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;
+    }
+    .act-btn.gold{background:var(--gold);color:#0a0b0f;border:none;box-shadow:0 3px 12px rgba(245,197,24,.2)}
+    .act-btn.ghost{background:var(--blue-s);color:var(--blue);border:1px solid rgba(59,130,246,.22)}
+    .act-btn:hover:not(:disabled){opacity:.85}
+    .act-btn:disabled{opacity:.45;cursor:not-allowed}
+
+    .inline-ok{
+      display:none;margin-top:12px;padding:10px 14px;
+      background:var(--green-s);border:1px solid rgba(34,197,94,.22);
+      border-radius:10px;font-size:13px;color:var(--green);line-height:1.5;
+    }
+    .inline-ok.show{display:block}
+
+    /* link card */
+    .link-row{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 14px;background:var(--s3);border:1px solid var(--bs);
+      border-radius:10px;margin-bottom:9px;
+    }
+    .link-icon{font-size:18px;flex-shrink:0}
+    .link-body{flex:1;min-width:0}
+    .link-body strong{display:block;font-size:12px;font-weight:700;color:var(--t2)}
+    .link-body a,.link-body span{
+      font-size:11.5px;color:var(--gold);text-decoration:none;
+      word-break:break-all;display:block;margin-top:2px;
+    }
+    .copy-btn{
+      padding:5px 10px;background:var(--gold-s);border:1px solid rgba(245,197,24,.22);
+      border-radius:7px;color:var(--gold);font-size:11px;font-weight:700;
+      cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s;flex-shrink:0;
+    }
+    .copy-btn:hover{background:rgba(245,197,24,.14)}
+    .copy-btn.copied{background:var(--green-s);color:var(--green);border-color:rgba(34,197,94,.22)}
 
     /* ── TOAST ── */
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 22px;font-size:13px;transition:transform .3s;z-index:999;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+    .toast{
+      position:fixed;bottom:22px;left:50%;
+      transform:translateX(-50%) translateY(70px);
+      background:var(--s2);border:1px solid var(--border);
+      border-radius:10px;padding:10px 22px;font-size:13px;
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+      z-index:999;box-shadow:0 8px 28px rgba(0,0,0,.5);
+    }
     .toast.show{transform:translateX(-50%) translateY(0)}
 
     /* ── SPINNER ── */
-    .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(13,14,18,.3);border-top-color:#0d0e12;border-radius:50%;animation:spin .7s linear infinite}
+    .spin{
+      display:inline-block;width:14px;height:14px;
+      border:2px solid rgba(10,11,15,.3);border-top-color:#0a0b0f;
+      border-radius:50%;animation:spin .7s linear infinite;
+    }
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    @media(max-width:900px){
+    @media(max-width:960px){
       .stats{grid-template-columns:1fr 1fr}
       .bc-layout{grid-template-columns:1fr}
-      .settings-grid{grid-template-columns:1fr}
-      .chart-row{grid-template-columns:1fr}
+      .set-grid{grid-template-columns:1fr}
+      .info-row{grid-template-columns:1fr}
+      header{padding:0 16px}
+      .stats,.info-row,.tab-bar{padding-left:16px;padding-right:16px}
+      .tab-body{margin:0 16px 24px}
     }
   </style>
 </head>
@@ -308,20 +426,20 @@
   </div>
 </div>
 
-<!-- CHART ROW -->
-<div class="chart-row">
-  <div class="chart-card">
-    <div class="ch-title">📊 جهات الاتصال الجديدة (آخر 6 أشهر)</div>
+<!-- INFO ROW -->
+<div class="info-row">
+  <div class="info-card">
+    <div class="ic-title">📊 جهات الاتصال الجديدة (آخر 6 أشهر)</div>
     <div class="bar-chart" id="barChart">
-      <div style="color:var(--t3);font-size:12px;width:100%;text-align:center;align-self:center">جاري التحميل...</div>
+      <div style="color:var(--t3);font-size:12px;width:100%;text-align:center;align-self:center">لا توجد بيانات بعد</div>
     </div>
   </div>
-  <div class="chart-card">
-    <div class="ch-title">🤖 حالة البوت الآن</div>
-    <div class="bot-info" id="botInfo">
-      <div class="bi-row"><span>حالة الاتصال</span><span class="bi-val g" id="biConn">—</span></div>
-      <div class="bi-row"><span>جلسات نشطة</span><span class="bi-val gold" id="biActive">—</span></div>
-      <div class="bi-row"><span>محادثات مع فريق الدعم</span><span class="bi-val b" id="biPaused">—</span></div>
+  <div class="info-card">
+    <div class="ic-title">🤖 حالة البوت الآن</div>
+    <div class="bi-list">
+      <div class="bi-row"><span class="bi-lbl">حالة الاتصال</span><span class="bi-val g" id="biConn">—</span></div>
+      <div class="bi-row"><span class="bi-lbl">جلسات نشطة</span><span class="bi-val gold" id="biActive">—</span></div>
+      <div class="bi-row"><span class="bi-lbl">مع فريق الدعم</span><span class="bi-val b" id="biPaused">—</span></div>
     </div>
   </div>
 </div>
@@ -338,35 +456,33 @@
   <!-- ── BROADCAST ── -->
   <div class="tab-pane active" id="pane-broadcast">
     <div class="bc-layout">
-
-      <!-- يسار: المحرر -->
       <div class="bc-left">
+
         <div>
-          <div class="section-title">✏️ اكتب رسالتك الإعلانية</div>
-          <div class="msg-compose">
-            <textarea id="bcMsg" placeholder="اكتب رسالتك هنا...
-مثال: 🎉 عروض رمضان على منصة إفادة! خصم 30% على جميع الكورسات بكود RAMADAN30 — العرض لفترة محدودة فقط 🚀" oninput="updatePreview()"></textarea>
-            <div class="compose-footer">
-              <span class="char-info" id="bcCharInfo">0 حرف</span>
-              <span style="font-size:11px;color:var(--t3)">واتساب يدعم حتى 65,000 حرف</span>
+          <div class="section-lbl">✏️ الرسالة الإعلانية</div>
+          <div class="compose">
+            <textarea id="bcMsg" placeholder="اكتب رسالتك هنا...&#10;&#10;مثال:&#10;🎉 عرض خاص من إفادة! خصم 30% على جميع الكورسات التقنية بكود IEFADA30 — العرض لفترة محدودة ⚡" oninput="updatePreview()"></textarea>
+            <div class="compose-foot">
+              <span id="bcCharInfo">0 حرف</span>
+              <span>الحد الأقصى 65,000 حرف</span>
             </div>
           </div>
         </div>
 
-        <div class="toggle-row" onclick="toggleButtons()">
-          <div style="font-size:22px">🔘</div>
-          <div class="toggle-info">
-            <strong>إضافة أزرار تفاعلية</strong>
-            <span>يظهر للمستلم زرَّي "✅ مهتم" و "❌ غير مهتم" — قد لا تدعمها جميع إصدارات واتساب</span>
+        <div class="toggle-card" onclick="toggleButtons()">
+          <div class="tc-icon">🔘</div>
+          <div class="tc-info">
+            <strong>أزرار تفاعلية (مهتم / غير مهتم)</strong>
+            <span>يظهر للمستلم زرَّي "✅ مهتم" و "❌ غير مهتم" — قد لا تدعمها بعض إصدارات واتساب</span>
           </div>
-          <div class="toggle" id="btnToggle"></div>
+          <div class="sw" id="swBtn"></div>
         </div>
 
         <div>
-          <div class="section-title">👁️ معاينة الرسالة</div>
-          <div class="preview-box">
-            <div class="pv-label">📱 كيف ستبدو للمستلم</div>
-            <div class="preview-msg" id="pvMsg" style="color:var(--t3);font-size:12px">اكتب رسالتك لترى المعاينة هنا...</div>
+          <div class="section-lbl">👁️ معاينة</div>
+          <div class="preview">
+            <div class="pv-lbl">📱 كيف ستبدو الرسالة</div>
+            <div class="pv-bubble empty" id="pvMsg">اكتب رسالتك لترى المعاينة هنا...</div>
             <div class="pv-btns" id="pvBtns" style="display:none">
               <div class="pv-btn">✅ مهتم</div>
               <div class="pv-btn">❌ غير مهتم</div>
@@ -374,49 +490,43 @@
           </div>
         </div>
 
-        <div class="bc-progress" id="bcProgress">
-          <div class="bc-progress-bar" id="bcProgressBar"></div>
-        </div>
+        <div class="bc-progress" id="bcProg"><div class="bc-pb" id="bcPb"></div></div>
         <div class="bc-result" id="bcResult"></div>
 
         <button class="send-btn" id="sendBtn" onclick="sendBroadcast()">
-          <span>📣</span>
-          <span id="sendBtnTxt">إرسال للمحددين</span>
+          <span>📣</span><span id="sendBtnTxt">إرسال للمحددين</span>
         </button>
+
       </div>
 
-      <!-- يمين: اختيار جهات الاتصال -->
       <div class="bc-right">
-        <div class="section-title">👥 اختر المستلمين</div>
+        <div class="section-lbl">👥 المستلمون</div>
         <div class="cpicker">
-          <div class="cpicker-head">
-            <input class="cpicker-search" type="text" placeholder="🔍 بحث..." id="cpSearch" oninput="filterContacts()"/>
-            <button class="sel-all-btn" onclick="selectAll()">تحديد الكل</button>
+          <div class="cp-head">
+            <input class="cp-search" type="text" id="cpSearch" placeholder="🔍 بحث بالاسم أو الرقم..." oninput="filterPicker()"/>
+            <button class="cp-btn" onclick="selectAll()">تحديد الكل</button>
           </div>
-          <div class="cpicker-list" id="cpList">
-            <div class="cpicker-empty">جاري التحميل...</div>
-          </div>
-          <div class="cpicker-footer">
+          <div class="cp-list" id="cpList"><div class="cp-empty">جاري التحميل...</div></div>
+          <div class="cp-foot">
             <span id="cpCount">0 محدد</span>
-            <button class="sel-all-btn" style="background:var(--red-s);color:var(--red);border-color:rgba(239,68,68,.25)" onclick="clearSelection()">إلغاء الكل</button>
+            <button class="cp-btn" style="background:var(--red-s);color:var(--red);border-color:rgba(239,68,68,.22)" onclick="clearSel()">إلغاء الكل</button>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
   <!-- ── CONTACTS ── -->
   <div class="tab-pane" id="pane-contacts">
-    <div class="ct-toolbar">
-      <input class="ct-search" type="text" id="ctSearch" placeholder="🔍 بحث باسم أو رقم..." oninput="filterTable()"/>
+    <div class="ct-bar">
+      <input class="ct-search" type="text" id="ctSearch" placeholder="🔍 بحث بالاسم أو الرقم..." oninput="filterTable()"/>
       <button class="dl-btn" onclick="downloadContacts()">⬇️ تحميل JSON</button>
     </div>
     <div class="ct-wrap">
       <table class="ct-table">
         <thead>
           <tr>
-            <th>#</th>
+            <th style="width:48px">#</th>
             <th>الاسم</th>
             <th>رقم الهاتف</th>
             <th>أول تواصل</th>
@@ -424,7 +534,7 @@
           </tr>
         </thead>
         <tbody id="ctBody">
-          <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--t3)">جاري التحميل...</td></tr>
+          <tr><td colspan="5" class="ct-empty">جاري التحميل...</td></tr>
         </tbody>
       </table>
     </div>
@@ -432,44 +542,54 @@
 
   <!-- ── SETTINGS ── -->
   <div class="tab-pane" id="pane-settings">
-    <div class="settings-grid">
+    <div class="set-grid">
 
-      <!-- تغيير باسورد خدمة العملاء -->
+      <!-- تغيير باسورد CS -->
       <div class="set-card">
         <h3>🔐 باسورد خدمة العملاء</h3>
-        <p>تغيير كلمة المرور الخاصة بلوحة تحكم موظفي خدمة العملاء. الرابط الحالي: <code style="color:var(--gold);font-size:11px">/dashboard/[الباسورد]</code></p>
-        <div class="input-group">
+        <p>تغيير كلمة المرور التي يستخدمها موظفو خدمة العملاء لدخول لوحة التحكم.</p>
+        <div class="inp-grp">
           <label>الباسورد الجديد</label>
           <input type="text" id="newCsPass" placeholder="أدخل باسورد جديد (4 أحرف على الأقل)"/>
         </div>
-        <div class="input-group">
+        <div class="inp-grp">
           <label>تأكيد الباسورد</label>
           <input type="password" id="confirmCsPass" placeholder="أعد كتابة الباسورد"/>
         </div>
-        <button class="act-btn gold" id="changePwBtn" onclick="changeCSPassword()">حفظ الباسورد الجديد</button>
+        <button class="act-btn gold" id="changePwBtn" onclick="changeCSPass()">💾 حفظ الباسورد الجديد</button>
         <div class="inline-ok" id="pwOk"></div>
       </div>
 
-      <!-- معلومات عامة -->
+      <!-- روابط الوصول -->
       <div class="set-card">
-        <h3>ℹ️ معلومات النظام</h3>
-        <p>روابط لوحات التحكم وكيفية الوصول إليها</p>
-        <div class="bot-info">
-          <div class="bi-row">
-            <span>لوحة خدمة العملاء</span>
-            <span class="bi-val" style="font-size:11px;color:var(--t2)" id="infoCSLink">—</span>
+        <h3>🔗 روابط لوحات التحكم</h3>
+        <p>الروابط الكاملة للوصول إلى لوحات التحكم. احتفظ بها في مكان آمن.</p>
+
+        <div class="link-row">
+          <div class="link-icon">👨‍💼</div>
+          <div class="link-body">
+            <strong>لوحة خدمة العملاء</strong>
+            <span id="csLink">جاري التحميل...</span>
           </div>
-          <div class="bi-row">
-            <span>لوحة المالك</span>
-            <span class="bi-val" style="font-size:11px;color:var(--t2)" id="infoOwnerLink">—</span>
-          </div>
-          <div class="bi-row">
-            <span>ربط واتساب (QR)</span>
-            <a href="/qr" target="_blank" style="font-size:12px;color:var(--gold);text-decoration:none;font-weight:600">فتح صفحة QR ←</a>
-          </div>
+          <button class="copy-btn" id="csCopyBtn" onclick="copyLink('csLink','csCopyBtn')">نسخ</button>
         </div>
-        <div style="margin-top:14px">
-          <button class="act-btn blue" onclick="window.open('/qr','_blank')">📷 صفحة ربط واتساب</button>
+
+        <div class="link-row">
+          <div class="link-icon">👑</div>
+          <div class="link-body">
+            <strong>لوحة المالك (الرابط الحالي)</strong>
+            <span id="ownerLink">—</span>
+          </div>
+          <button class="copy-btn" id="ownerCopyBtn" onclick="copyLink('ownerLink','ownerCopyBtn')">نسخ</button>
+        </div>
+
+        <div class="link-row">
+          <div class="link-icon">📷</div>
+          <div class="link-body">
+            <strong>ربط واتساب (QR Code)</strong>
+            <a href="/qr" target="_blank">/qr — افتح لمسح الكود</a>
+          </div>
+          <button class="copy-btn" onclick="window.open('/qr','_blank')">فتح</button>
         </div>
       </div>
 
@@ -483,14 +603,15 @@
 <script>
   const OWN_KEY = location.pathname.split('/').pop();
   let allContacts = [];
-  let selectedPhones = new Set();
-  let withButtons = false;
+  let selectedJids = new Set();
+  let withButtons  = false;
 
-  function $(id){ return document.getElementById(id) }
+  const $ = id => document.getElementById(id);
 
   function showToast(msg, dur=2800){
     const t=$('toast'); t.textContent=msg; t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),dur);
+    clearTimeout(t._t);
+    t._t=setTimeout(()=>t.classList.remove('show'),dur);
   }
 
   function fmtDate(ts){
@@ -501,7 +622,7 @@
   function initials(name){
     if(!name)return'?';
     const p=name.trim().split(' ');
-    return p.length>=2?p[0][0]+p[1][0]:name[0]||'?';
+    return(p.length>=2?p[0][0]+p[1][0]:name[0]||'?').toUpperCase();
   }
 
   function switchTab(id,btn){
@@ -515,43 +636,37 @@
   async function fetchStats(){
     try{
       const d=await fetch('/api/owner/stats').then(r=>r.json());
-      $('sTotal').textContent=d.total.toLocaleString('ar');
-      $('sMonth').textContent=d.thisMonth.toLocaleString('ar');
-      $('sWeek').textContent=d.thisWeek.toLocaleString('ar');
-      $('sToday').textContent=d.today.toLocaleString('ar');
-      $('biActive').textContent=d.totalSessions;
-      $('biPaused').textContent=d.pausedSessions;
+      $('sTotal').textContent =d.total.toLocaleString('ar');
+      $('sMonth').textContent =d.thisMonth.toLocaleString('ar');
+      $('sWeek').textContent  =d.thisWeek.toLocaleString('ar');
+      $('sToday').textContent =d.today.toLocaleString('ar');
+      $('biActive').textContent =d.totalSessions;
+      $('biPaused').textContent =d.pausedSessions;
       if(d.botConnected){
-        $('botDot').className='dot g';
-        $('botTxt').textContent='البوت متصل';
-        $('biConn').textContent='🟢 متصل';
-        $('biConn').className='bi-val g';
-      } else {
-        $('botDot').className='dot r';
-        $('botTxt').textContent='البوت غير متصل';
-        $('biConn').textContent='🔴 غير متصل';
-        $('biConn').className='bi-val';
-        $('biConn').style.color='var(--red)';
+        $('botDot').className='dot g'; $('botTxt').textContent='البوت متصل';
+        $('biConn').textContent='🟢 متصل'; $('biConn').className='bi-val g';
+      }else{
+        $('botDot').className='dot r'; $('botTxt').textContent='البوت غير متصل';
+        $('biConn').textContent='🔴 غير متصل'; $('biConn').style.color='var(--red)';
       }
       renderChart(d.monthlyBreakdown||[]);
-
-      // update settings links
-      $('infoCSLink').textContent=location.origin+'/dashboard/[باسورد-خدمة-العملاء]';
-      $('infoOwnerLink').textContent=location.origin+'/owner/'+OWN_KEY;
     }catch(e){}
   }
 
   function renderChart(data){
     const el=$('barChart');
-    if(!data.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px;width:100%;text-align:center;align-self:center">لا توجد بيانات بعد</div>'; return; }
+    if(!data.length){
+      el.innerHTML='<div style="color:var(--t3);font-size:12px;width:100%;text-align:center;align-self:center">لا توجد بيانات بعد</div>';
+      return;
+    }
     const max=Math.max(...data.map(d=>d.count),1);
     el.innerHTML=data.map(d=>{
-      const pct=Math.max((d.count/max)*72,4);
-      const label=d.month.split('-')[1]+'/'+d.month.split('-')[0].slice(2);
-      return `<div class="bar-col">
+      const pct=Math.max((d.count/max)*70,4);
+      const [yr,mo]=d.month.split('-');
+      return`<div class="bar-col">
         <div class="bar-val">${d.count}</div>
         <div class="bar-fill" style="height:${pct}px"></div>
-        <div class="bar-label">${label}</div>
+        <div class="bar-label">${mo}/${yr.slice(2)}</div>
       </div>`;
     }).join('');
   }
@@ -560,196 +675,206 @@
   async function fetchContacts(){
     try{
       allContacts=await fetch('/api/owner/contacts').then(r=>r.json());
-      renderContactsPicker(allContacts);
-      renderContactsTable(allContacts);
+      renderPicker(allContacts);
+      renderTable(allContacts);
     }catch(e){}
   }
 
-  function renderContactsPicker(list){
+  function renderPicker(list){
     const el=$('cpList');
-    if(!list.length){ el.innerHTML='<div class="cpicker-empty">لا توجد جهات اتصال بعد</div>'; return; }
+    if(!list.length){el.innerHTML='<div class="cp-empty">لا توجد جهات اتصال بعد</div>';return;}
     el.innerHTML=list.map(c=>{
-      const checked=selectedPhones.has(c.phone)?'checked':'';
-      return `<div class="contact-item ${checked}" onclick="toggleContact('${c.phone}','${c.name.replace(/'/g,"\\'")}',this)">
-        <div class="cb">${checked?'✓':''}</div>
+      const on=selectedJids.has(c.jid||c.phone)?'on':'';
+      const ck=on?'✓':'';
+      const jid=c.jid||c.phone;
+      const lid=jid.includes('@lid')?'<span class="c-lid">'+jid+'</span>':'';
+      return`<div class="ci ${on}" onclick="toggleCI('${encodeURIComponent(jid)}',this)">
+        <div class="cb">${ck}</div>
         <div class="c-av">${initials(c.name)}</div>
         <div class="c-info">
           <strong>${c.name}</strong>
-          <span>${c.phone}</span>
+          <span class="c-phone">${c.phone}</span>
+          ${lid}
         </div>
       </div>`;
     }).join('');
-    updateSelCount();
+    updateCount();
   }
 
-  function toggleContact(phone,name,el){
-    if(selectedPhones.has(phone)){
-      selectedPhones.delete(phone);
-      el.classList.remove('checked');
+  function toggleCI(encJid,el){
+    const jid=decodeURIComponent(encJid);
+    if(selectedJids.has(jid)){
+      selectedJids.delete(jid);
+      el.classList.remove('on');
       el.querySelector('.cb').textContent='';
-    } else {
-      selectedPhones.add(phone);
-      el.classList.add('checked');
+    }else{
+      selectedJids.add(jid);
+      el.classList.add('on');
       el.querySelector('.cb').textContent='✓';
     }
-    updateSelCount();
+    updateCount();
   }
 
   function selectAll(){
-    const filtered=getFilteredContacts();
-    filtered.forEach(c=>selectedPhones.add(c.phone));
-    renderContactsPicker(filtered.length===allContacts.length?allContacts:filtered);
-    updateSelCount();
+    getFiltered().forEach(c=>selectedJids.add(c.jid||c.phone));
+    renderPicker(getFiltered());
   }
-
-  function clearSelection(){
-    selectedPhones.clear();
-    renderContactsPicker(getFilteredContacts());
-    updateSelCount();
+  function clearSel(){
+    selectedJids.clear();
+    renderPicker(getFiltered());
   }
-
-  function updateSelCount(){
-    const n=selectedPhones.size;
+  function updateCount(){
+    const n=selectedJids.size;
     $('cpCount').textContent=n+' محدد';
     $('sendBtnTxt').textContent=n>0?`إرسال لـ ${n} جهة اتصال`:'إرسال للمحددين';
   }
-
-  function getFilteredContacts(){
+  function getFiltered(){
     const q=$('cpSearch').value.toLowerCase();
-    return q?allContacts.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)):allContacts;
+    return q?allContacts.filter(c=>c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.jid||'').includes(q)):allContacts;
   }
+  function filterPicker(){renderPicker(getFiltered())}
 
-  function filterContacts(){
-    renderContactsPicker(getFilteredContacts());
-  }
-
-  function renderContactsTable(list){
+  function renderTable(list){
     const el=$('ctBody');
-    if(!list.length){ el.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--t3)">لا توجد جهات اتصال بعد</td></tr>'; return; }
-    el.innerHTML=list.map((c,i)=>`
-      <tr>
-        <td style="color:var(--t3);font-size:12px">${i+1}</td>
+    if(!list.length){
+      el.innerHTML='<tr><td colspan="5" class="ct-empty">لا توجد جهات اتصال بعد</td></tr>';
+      return;
+    }
+    el.innerHTML=list.map((c,i)=>{
+      const jid=c.jid||'';
+      const lidBadge=jid?`<span class="lid-tag">${jid}</span>`:'';
+      return`<tr>
+        <td><div class="row-num">${i+1}</div></td>
         <td><strong>${c.name}</strong></td>
-        <td><span class="ph-tag">${c.phone}</span></td>
+        <td>
+          <span class="num-badge">${c.phone}</span>
+          ${lidBadge}
+        </td>
         <td style="color:var(--t2);font-size:12px">${fmtDate(c.firstContact)}</td>
         <td style="color:var(--t2);font-size:12px">${fmtDate(c.lastContact)}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
   function filterTable(){
     const q=$('ctSearch').value.toLowerCase();
-    renderContactsTable(q?allContacts.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)):allContacts);
+    renderTable(q?allContacts.filter(c=>
+      c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.jid||'').includes(q)
+    ):allContacts);
   }
 
-  function downloadContacts(){
-    window.location.href='/api/owner/contacts/download';
-  }
+  function downloadContacts(){window.location.href='/api/owner/contacts/download'}
 
   /* ── BROADCAST ── */
   function toggleButtons(){
     withButtons=!withButtons;
-    const t=$('btnToggle');
-    t.classList.toggle('on',withButtons);
+    $('swBtn').classList.toggle('on',withButtons);
     $('pvBtns').style.display=withButtons?'flex':'none';
   }
 
   function updatePreview(){
     const msg=$('bcMsg').value;
-    const pv=$('pvMsg');
     $('bcCharInfo').textContent=msg.length.toLocaleString('ar')+' حرف';
-    if(msg.trim()){
-      pv.textContent=msg;
-      pv.style.color='var(--text)';
-    } else {
-      pv.textContent='اكتب رسالتك لترى المعاينة هنا...';
-      pv.style.color='var(--t3)';
-    }
+    const pv=$('pvMsg');
+    if(msg.trim()){pv.textContent=msg;pv.classList.remove('empty');}
+    else{pv.textContent='اكتب رسالتك لترى المعاينة هنا...';pv.classList.add('empty');}
   }
 
   async function sendBroadcast(){
     const msg=$('bcMsg').value.trim();
-    if(!msg){ showToast('⚠️ اكتب رسالة أولاً'); return; }
-    if(!selectedPhones.size){ showToast('⚠️ اختر جهة اتصال واحدة على الأقل'); return; }
-
+    if(!msg){showToast('⚠️ اكتب الرسالة أولاً');return;}
+    if(!selectedJids.size){showToast('⚠️ اختر مستلماً واحداً على الأقل');return;}
     const btn=$('sendBtn');
     btn.disabled=true;
     btn.innerHTML='<span class="spin"></span><span>جاري الإرسال...</span>';
     $('bcResult').classList.remove('show');
-    $('bcProgress').classList.add('show');
-    $('bcProgressBar').style.width='10%';
-
+    $('bcProg').classList.add('show');
+    $('bcPb').style.width='15%';
     try{
-      $('bcProgressBar').style.width='50%';
+      $('bcPb').style.width='55%';
       const r=await fetch('/api/owner/broadcast',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          ownerKey:OWN_KEY,
-          message:msg,
-          phones:[...selectedPhones],
-          withButtons
-        })
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ownerKey:OWN_KEY,message:msg,phones:[...selectedJids],withButtons})
       });
       const d=await r.json();
-      $('bcProgressBar').style.width='100%';
-      setTimeout(()=>$('bcProgress').classList.remove('show'),600);
-
+      $('bcPb').style.width='100%';
+      setTimeout(()=>$('bcProg').classList.remove('show'),600);
+      const res=$('bcResult');
       if(r.ok){
-        const res=$('bcResult');
         res.className='bc-result show ok';
-        res.textContent=`✅ تم إرسال الرسالة بنجاح لـ ${d.sent} جهة اتصال${d.failed>0?` — فشل: ${d.failed}`:''}`;
-        showToast(`✅ أُرسلت لـ ${d.sent} جهة`);
-      } else {
-        const res=$('bcResult');
+        res.textContent=`✅ أُرسلت بنجاح لـ ${d.sent} جهة اتصال${d.failed>0?` | فشل: ${d.failed}`:''}`;
+        showToast(`✅ تم الإرسال لـ ${d.sent} جهة`);
+      }else{
         res.className='bc-result show err';
-        res.textContent='❌ '+(d.error||'حدث خطأ');
+        res.textContent='❌ '+(d.error||'حدث خطأ غير متوقع');
       }
     }catch(e){
       $('bcResult').className='bc-result show err';
       $('bcResult').textContent='❌ خطأ في الاتصال بالخادم';
-      $('bcProgress').classList.remove('show');
+      $('bcProg').classList.remove('show');
     }finally{
       btn.disabled=false;
       btn.innerHTML='<span>📣</span><span id="sendBtnTxt">إرسال للمحددين</span>';
-      updateSelCount();
+      updateCount();
     }
   }
 
   /* ── SETTINGS ── */
-  async function changeCSPassword(){
+  async function loadLinks(){
+    try{
+      const d=await fetch('/api/owner/get-config?key='+OWN_KEY).then(r=>r.json());
+      const base=location.origin;
+      $('csLink').textContent=base+'/dashboard/'+d.dashboardPassword;
+      $('ownerLink').textContent=location.href;
+    }catch(e){
+      $('csLink').textContent='تعذّر التحميل';
+    }
+  }
+
+  async function changeCSPass(){
     const np=$('newCsPass').value.trim();
     const cp=$('confirmCsPass').value.trim();
-    if(!np||np.length<4){ showToast('⚠️ الباسورد قصير جداً (4 أحرف على الأقل)'); return; }
-    if(np!==cp){ showToast('⚠️ كلمتا المرور غير متطابقتين'); return; }
-
+    if(!np||np.length<4){showToast('⚠️ الباسورد قصير (4 أحرف على الأقل)');return;}
+    if(np!==cp){showToast('⚠️ كلمتا المرور غير متطابقتين');return;}
     const btn=$('changePwBtn');
     btn.disabled=true;
     try{
       const r=await fetch('/api/owner/change-cs-password',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
+        method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ownerKey:OWN_KEY,newPassword:np})
       });
       const d=await r.json();
       if(r.ok){
         const ok=$('pwOk');
-        ok.textContent=`✅ تم تغيير الباسورد. الرابط الجديد: /dashboard/${np}`;
+        ok.textContent=`✅ تم التغيير. الرابط الجديد: ${location.origin}/dashboard/${np}`;
         ok.classList.add('show');
-        $('newCsPass').value='';
-        $('confirmCsPass').value='';
-        showToast('✅ تم تغيير الباسورد بنجاح');
-        setTimeout(()=>ok.classList.remove('show'),5000);
-      } else {
+        $('newCsPass').value='';$('confirmCsPass').value='';
+        showToast('✅ تم تغيير الباسورد');
+        loadLinks(); // تحديث الروابط
+        setTimeout(()=>ok.classList.remove('show'),6000);
+      }else{
         showToast('❌ '+(d.error||'فشل التغيير'));
       }
-    }catch(e){ showToast('❌ خطأ في الاتصال'); }
-    finally{ btn.disabled=false; }
+    }catch(e){showToast('❌ خطأ في الاتصال');}
+    finally{btn.disabled=false;}
+  }
+
+  function copyLink(spanId, btnId){
+    const text = $(spanId).textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn=$(btnId);
+      btn.textContent='✓ تم';
+      btn.classList.add('copied');
+      setTimeout(()=>{btn.textContent='نسخ';btn.classList.remove('copied');},2000);
+      showToast('📋 تم نسخ الرابط');
+    });
   }
 
   /* ── INIT ── */
   fetchStats();
   fetchContacts();
-  setInterval(fetchStats,8000);
+  loadLinks();
+  setInterval(fetchStats, 8000);
 </script>
 </body>
 </html>
