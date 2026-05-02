@@ -544,6 +544,22 @@ app.get("/api/qr-status", (req, res) => {
   res.json({ hasQR: !!global.qrCodeUrl, dataUrl: global.qrCodeUrl || null });
 });
 
+app.post("/api/pairing-code", async (req, res) => {
+  const { ownerKey, phone } = req.body;
+  const cfg = loadConfig();
+  if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
+  if (!phone) return res.status(400).json({ error: "أدخل رقم الهاتف" });
+  if (!sock) return res.status(503).json({ error: "البوت لم يبدأ بعد — انتظر لحظة" });
+  try {
+    const cleanPhone = phone.replace(/\D/g, "");
+    if (cleanPhone.length < 7) return res.status(400).json({ error: "رقم الهاتف غير صحيح" });
+    const code = await sock.requestPairingCode(cleanPhone);
+    res.json({ code });
+  } catch (e) {
+    res.status(500).json({ error: e?.message || "فشل طلب كود الربط" });
+  }
+});
+
 // ===== API لوحة التحكم =====
 
 // قائمة العملاء مرتبة بالأحدث

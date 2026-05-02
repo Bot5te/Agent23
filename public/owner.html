@@ -377,6 +377,16 @@
     }
     @keyframes spin{to{transform:rotate(360deg)}}
 
+    /* method tabs inside settings card */
+    .mtab{
+      padding:8px 16px;font-size:13px;font-weight:700;
+      background:var(--s3);border:1px solid var(--bs);
+      border-radius:9px;color:var(--t2);cursor:pointer;
+      font-family:inherit;transition:all .2s;
+    }
+    .mtab.active{background:var(--gold-s);border-color:rgba(245,197,24,.25);color:var(--gold)}
+    .mtab:hover:not(.active){color:var(--text)}
+
     @media(max-width:960px){
       .stats{grid-template-columns:1fr 1fr}
       .bc-layout{grid-template-columns:1fr}
@@ -400,9 +410,6 @@
   </div>
   <div class="header-r">
     <span class="owner-badge">OWNER</span>
-    <button id="ownerQrBtn" onclick="openOwnerQRModal()" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;background:var(--gold-s);border:1px solid rgba(245,197,24,.2);color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s">
-      <span>📱</span><span>ربط واتساب</span>
-    </button>
     <div class="pill">
       <div class="dot r" id="botDot"></div>
       <span id="botTxt">جاري التحقق...</span>
@@ -587,36 +594,73 @@
           <button class="copy-btn" id="ownerCopyBtn" onclick="copyLink('ownerLink','ownerCopyBtn')">نسخ</button>
         </div>
 
-        <div class="link-row">
-          <div class="link-icon">📷</div>
-          <div class="link-body">
-            <strong>ربط واتساب (QR Code)</strong>
-            <a href="/qr" target="_blank">/qr — افتح لمسح الكود</a>
-          </div>
-          <button class="copy-btn" onclick="window.open('/qr','_blank')">فتح</button>
+      </div>
+
+      <!-- ربط واتساب — طريقتان -->
+      <div class="set-card" style="grid-column:1/-1">
+        <h3>📱 ربط حساب واتساب</h3>
+        <p>اختر طريقة الربط. تأكد أن البوت غير متصل قبل البدء.</p>
+
+        <!-- method tabs -->
+        <div style="display:flex;gap:6px;margin:14px 0">
+          <button class="mtab active" id="mtab-qr" onclick="switchMethod('qr')">📷 رمز QR</button>
+          <button class="mtab" id="mtab-pair" onclick="switchMethod('pair')">🔢 كود الربط</button>
         </div>
+
+        <!-- QR method -->
+        <div id="mp-qr">
+          <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+            <div style="text-align:center;flex-shrink:0">
+              <div id="settingsQrFrame" style="width:210px;height:210px;background:var(--s3);border:2px solid var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;overflow:hidden">
+                <span style="font-size:28px;opacity:.3">📷</span>
+              </div>
+              <div id="settingsQrTimer" style="font-size:11.5px;color:var(--t3);margin-bottom:10px"></div>
+              <button onclick="refreshSettingsQR()" style="padding:8px 20px;background:var(--gold);color:#0a0b0f;border:none;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">🔄 تحديث</button>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <p style="font-size:12.5px;color:var(--t2);font-weight:600;margin-bottom:10px">خطوات المسح:</p>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--t2);line-height:1.6">
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--gold);color:#0a0b0f;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">1</span><span>افتح واتساب على هاتفك</span></div>
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--gold);color:#0a0b0f;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">2</span><span>اضغط ⋮ ← الأجهزة المرتبطة</span></div>
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--gold);color:#0a0b0f;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">3</span><span>اضغط "ربط جهاز"</span></div>
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--gold);color:#0a0b0f;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">4</span><span>وجّه الكاميرا نحو الرمز ✅</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pairing Code method -->
+        <div id="mp-pair" style="display:none">
+          <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+            <div style="flex:1;min-width:220px">
+              <p style="font-size:12.5px;color:var(--t2);margin-bottom:12px">أدخل رقم الهاتف المرتبط بحساب واتساب (مع رمز الدولة):</p>
+              <div style="display:flex;gap:8px;margin-bottom:12px">
+                <input id="pairPhoneInput" type="tel" placeholder="+966501234567" style="flex:1;background:var(--s3);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:9px 12px;font-size:13px;font-family:inherit;outline:none;direction:ltr" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"/>
+                <button id="pairRequestBtn" onclick="requestPairCode()" style="padding:9px 18px;background:var(--gold);color:#0a0b0f;border:none;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap">طلب الكود</button>
+              </div>
+              <div id="pairCodeBox" style="display:none;margin-bottom:12px">
+                <p style="font-size:12px;color:var(--t2);margin-bottom:8px">أدخل هذا الكود في واتساب ← الإعدادات ← الأجهزة المرتبطة ← ربط بالرقم:</p>
+                <div id="pairCodeDisplay" style="font-size:32px;font-weight:900;letter-spacing:6px;color:var(--gold);background:var(--s3);border:2px solid rgba(245,197,24,.3);border-radius:12px;padding:16px;text-align:center;direction:ltr;font-family:monospace"></div>
+              </div>
+              <div id="pairError" style="display:none;font-size:12px;color:var(--red);background:var(--red-s);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:8px 12px"></div>
+            </div>
+            <div style="flex:1;min-width:200px">
+              <p style="font-size:12.5px;color:var(--t2);font-weight:600;margin-bottom:10px">خطوات الربط بالكود:</p>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--t2);line-height:1.6">
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--blue);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">1</span><span>أدخل رقم الهاتف واضغط "طلب الكود"</span></div>
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--blue);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">2</span><span>افتح واتساب ← الأجهزة المرتبطة</span></div>
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--blue);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">3</span><span>اضغط "ربط بالرقم" وأدخل الكود</span></div>
+                <div style="display:flex;gap:9px;align-items:flex-start"><span style="background:var(--blue);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">4</span><span>يُفعَّل الربط خلال ثوانٍ ✅</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
   </div>
 
-</div>
-
-<!-- ═══ QR MODAL ═══ -->
-<div class="qr-modal-bg" id="qrModalBg" onclick="closeQRModalBg(event)" style="position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px)">
-  <div style="background:var(--s1);border:1px solid var(--bs);border-radius:20px;padding:28px;width:90%;max-width:360px;text-align:center;position:relative;animation:popIn .25s cubic-bezier(.34,1.56,.64,1)">
-    <button onclick="closeQRModal()" style="position:absolute;top:14px;left:14px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t2);font-size:16px;cursor:pointer;padding:4px 9px;line-height:1">✕</button>
-    <div style="font-size:28px;margin-bottom:8px">📱</div>
-    <h2 style="font-size:17px;font-weight:800;margin-bottom:6px">ربط حساب واتساب</h2>
-    <p style="font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.65">افتح واتساب → الأجهزة المرتبطة → ربط جهاز<br/>ثم وجّه الكاميرا نحو الرمز أدناه</p>
-    <div id="ownerQrFrame" style="width:210px;height:210px;margin:0 auto 12px;border-radius:12px;overflow:hidden;background:var(--s2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
-      <span style="font-size:28px;opacity:.3">📱</span>
-    </div>
-    <div id="ownerQrTimer" style="font-size:11.5px;color:var(--t3);margin-bottom:14px">جاري التحميل...</div>
-    <button onclick="refreshOwnerQR()" style="padding:9px 22px;background:var(--gold);color:#0a0b0f;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px">
-      <span id="ownerQrRefIcon">🔄</span><span id="ownerQrRefTxt">تحديث الرمز</span>
-    </button>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -651,6 +695,13 @@
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
     $('pane-'+id).classList.add('active');
     btn.classList.add('active');
+    if(id==='settings'){
+      clearInterval(settingsQrInterval);
+      refreshSettingsQR();
+      settingsQrInterval = setInterval(refreshSettingsQR, 18000);
+    } else {
+      clearInterval(settingsQrInterval);
+    }
   }
 
   /* ── STATS ── */
@@ -891,52 +942,76 @@
     });
   }
 
-  /* ── QR Modal ── */
-  let ownerQrModalInterval = null;
+  /* ── SETTINGS: ربط واتساب ── */
+  let settingsQrInterval = null;
 
-  async function fetchQRStatus(){
-    try{ return await fetch('/api/qr-status').then(r=>r.json()); }
-    catch(e){ return {hasQR:false,dataUrl:null}; }
-  }
-
-  async function openOwnerQRModal(){
-    $('qrModalBg').style.display='flex';
-    await refreshOwnerQR();
-    clearInterval(ownerQrModalInterval);
-    ownerQrModalInterval=setInterval(refreshOwnerQR,15000);
-  }
-
-  function closeQRModal(){
-    $('qrModalBg').style.display='none';
-    clearInterval(ownerQrModalInterval);
-  }
-
-  function closeQRModalBg(e){
-    if(e.target===$('qrModalBg'))closeQRModal();
-  }
-
-  async function refreshOwnerQR(){
-    const frame=$('ownerQrFrame');
-    const timer=$('ownerQrTimer');
-    const icon=$('ownerQrRefIcon');const txt=$('ownerQrRefTxt');
-    if(icon){icon.innerHTML='<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(10,11,15,.3);border-top-color:#0a0b0f;border-radius:50%;animation:spin .7s linear infinite"></span>';txt.textContent='جاري...';}
-    const d=await fetchQRStatus();
-    if(d.dataUrl){
-      frame.innerHTML=`<img src="${d.dataUrl}" style="width:100%;height:100%;object-fit:contain"/>`;
-      timer.textContent='⏳ امسح الرمز من واتساب';
-    }else{
-      const btn=$('ownerQrBtn');
-      if(btn&&btn.innerHTML.includes('ربط واتساب')===false){
-        // bot connected
-        frame.innerHTML='<div style="font-size:48px">✅</div><div style="font-size:14px;font-weight:700;color:var(--green);margin-top:8px">البوت متصل</div>';
-        timer.textContent='لا حاجة لمسح QR';
-        setTimeout(closeQRModal,2500);
-      }else{
-        frame.innerHTML='<div style="font-size:36px;opacity:.3">⏳</div><div style="font-size:12px;color:var(--t3);margin-top:8px">لا يوجد رمز حالياً</div>';
-        timer.textContent='البوت يحاول الاتصال...';
-      }
+  function switchMethod(m){
+    $('mp-qr').style.display   = m==='qr'   ? 'block' : 'none';
+    $('mp-pair').style.display = m==='pair' ? 'block' : 'none';
+    $('mtab-qr').classList.toggle('active',  m==='qr');
+    $('mtab-pair').classList.toggle('active', m==='pair');
+    if(m==='qr'){
+      clearInterval(settingsQrInterval);
+      refreshSettingsQR();
+      settingsQrInterval = setInterval(refreshSettingsQR, 18000);
+    } else {
+      clearInterval(settingsQrInterval);
     }
-    if(icon){icon.textContent='🔄';txt.textContent='تحديث الرمز';}
+  }
+
+  async function refreshSettingsQR(){
+    const frame = $('settingsQrFrame');
+    const timer = $('settingsQrTimer');
+    try{
+      const d = await fetch('/api/qr-status').then(r=>r.json());
+      if(d.dataUrl){
+        frame.innerHTML = `<img src="${d.dataUrl}" style="width:100%;height:100%;object-fit:contain"/>`;
+        timer.textContent = '⏳ امسح الرمز من واتساب — صالح لدقيقة';
+        timer.style.color = 'var(--t3)';
+      } else {
+        const stats = await fetch('/api/stats').then(r=>r.json()).catch(()=>({botConnected:false}));
+        if(stats.botConnected){
+          frame.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="font-size:52px">✅</div><div style="font-size:13px;font-weight:700;color:var(--green)">البوت متصل بالفعل</div></div>';
+          timer.textContent = 'لا حاجة للربط مجدداً';
+          timer.style.color = 'var(--green)';
+        } else {
+          frame.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center"><div style="font-size:36px;opacity:.25">⏳</div><div style="font-size:12px;color:var(--t3)">لا يوجد رمز حالياً<br/>انتظر أو أعد تشغيل البوت</div></div>';
+          timer.textContent = '';
+        }
+      }
+    }catch(e){
+      timer.textContent = 'خطأ في الاتصال بالخادم';
+    }
+  }
+
+  async function requestPairCode(){
+    const phone = $('pairPhoneInput').value.trim();
+    const errEl = $('pairError');
+    const codeBox = $('pairCodeBox');
+    const btn = $('pairRequestBtn');
+    errEl.style.display = 'none';
+    codeBox.style.display = 'none';
+    if(!phone){ errEl.textContent='أدخل رقم الهاتف أولاً'; errEl.style.display='block'; return; }
+    btn.disabled = true;
+    btn.textContent = 'جاري الطلب...';
+    try{
+      const r = await fetch('/api/pairing-code',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ownerKey: OWN_KEY, phone })
+      });
+      const d = await r.json();
+      if(!r.ok){ errEl.textContent = d.error||'فشل الطلب'; errEl.style.display='block'; return; }
+      $('pairCodeDisplay').textContent = d.code;
+      codeBox.style.display = 'block';
+      showToast('✅ تم إنشاء كود الربط');
+    }catch(e){
+      errEl.textContent = 'خطأ في الاتصال بالخادم';
+      errEl.style.display = 'block';
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'طلب الكود';
+    }
   }
 
   /* ── INIT ── */
