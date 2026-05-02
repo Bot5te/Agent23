@@ -923,8 +923,6 @@ async function handleConnectionUpdate(update) {
     qrcode.toDataURL(qr, (err, url) => {
       if (!err) global.qrCodeUrl = url;
     });
-    const terminalQR = await qrcode.toString(qr, { type: "terminal", small: true });
-    console.log(terminalQR);
     console.log("📱 افتح /qr في المعاينة لمسح الكود من المتصفح");
   }
 
@@ -1009,7 +1007,7 @@ async function connectToWhatsApp() {
   }
 }
 
-// اتصال خاص بوضع كود الربط — يستدعي requestPairingCode فور الاتصال
+// اتصال خاص بوضع كود الربط — يطلب الكود عند استقبال حدث QR (أي أن الـ socket جاهز)
 async function connectWithPairingCode(phone) {
   console.log(`📲 بدء الاتصال بوضع كود الربط للرقم: ${phone}`);
   try {
@@ -1036,23 +1034,33 @@ async function connectWithPairingCode(phone) {
     });
 
     sock.ev.on("creds.update", saveCreds);
-    sock.ev.on("connection.update", handleConnectionUpdate);
     sock.ev.on("messages.upsert", handleMessagesUpsert);
 
-    // انتظر 3 ثوانٍ حتى يتصل الـ socket بخوادم واتساب ثم اطلب الكود
-    await new Promise(r => setTimeout(r, 3000));
+    let pairingCodeRequested = false;
 
-    if (!global.botConnected) {
-      const code = await sock.requestPairingCode(phone);
-      global.pairingCodeResult = { code, ts: Date.now() };
-      console.log(`✅ كود الربط للرقم ${phone}: ${code}`);
-    } else {
-      console.log("ℹ️ البوت اتصل تلقائياً قبل طلب الكود (بيانات مصادقة موجودة)");
-    }
+    sock.ev.on("connection.update", async (update) => {
+      const { qr } = update;
+
+      // عند ظهور QR يعني الـ socket متصل بخوادم واتساب وجاهز — نطلب الكود بدلاً من QR
+      if (qr && !pairingCodeRequested && !global.botConnected) {
+        pairingCodeRequested = true;
+        try {
+          const code = await sock.requestPairingCode(phone);
+          global.pairingCodeResult = { code, ts: Date.now() };
+          console.log(`✅ كود الربط للرقم ${phone}: ${code}`);
+        } catch (e) {
+          console.error("❌ خطأ في طلب كود الربط:", e?.message);
+          global.pairingCodeResult = { error: e?.message || "فشل طلب الكود", ts: Date.now() };
+          setTimeout(connectToWhatsApp, 3000);
+        }
+      }
+
+      // معالجة بقية أحداث الاتصال بشكل طبيعي
+      await handleConnectionUpdate(update);
+    });
   } catch (e) {
     console.error("❌ خطأ في connectWithPairingCode:", e?.message);
     global.pairingCodeResult = { error: e?.message || "فشل طلب الكود", ts: Date.now() };
-    // إعادة الاتصال الطبيعي
     setTimeout(connectToWhatsApp, 3000);
   }
 }
