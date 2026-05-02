@@ -185,7 +185,16 @@
     }
     .pv-bubble.empty{color:var(--t3);font-size:12.5px}
     .pv-btns{display:flex;gap:7px;margin-top:9px}
-    .pv-btn{flex:1;padding:8px;background:var(--s3);border:1px solid var(--border);border-radius:9px;font-size:12px;font-weight:700;color:var(--t2);text-align:center}
+    .pv-btn{flex:1;padding:8px;background:var(--s3);border:1px solid var(--border);border-radius:9px;font-size:12px;font-weight:700;color:var(--gold);text-align:center}
+
+    .img-upload-area{
+      position:relative;border:2px dashed var(--border);border-radius:14px;
+      background:var(--s2);min-height:120px;display:flex;align-items:center;
+      justify-content:center;text-align:center;cursor:pointer;
+      transition:border-color .2s,background .2s;padding:16px;
+    }
+    .img-upload-area:hover{border-color:var(--gold);background:var(--gold-s)}
+    .img-upload-area.has-img{border-style:solid;border-color:rgba(245,197,24,.4);padding:8px}
 
     .bc-progress{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;display:none;margin-top:4px}
     .bc-progress.show{display:block}
@@ -474,9 +483,23 @@
       <div class="bc-left">
 
         <div>
-          <div class="section-lbl">✏️ الرسالة الإعلانية</div>
+          <div class="section-lbl">🖼️ صورة الإعلان (اختياري)</div>
+          <div class="img-upload-area" id="imgUploadArea" onclick="$('imgFileInput').click()" ondragover="event.preventDefault()" ondrop="handleImgDrop(event)">
+            <img id="imgPreviewThumb" src="" alt="" style="display:none;max-width:100%;max-height:180px;border-radius:10px;object-fit:cover"/>
+            <div id="imgUploadPlaceholder">
+              <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+              <div style="font-weight:600;color:var(--gold)">اضغط لرفع صورة أو اسحبها هنا</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">JPG / PNG / WebP — حتى 5 ميغابايت</div>
+            </div>
+            <button id="imgClearBtn" onclick="clearImage(event)" style="display:none;position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px">✕ إزالة</button>
+          </div>
+          <input type="file" id="imgFileInput" accept="image/*" style="display:none" onchange="handleImgFile(this.files[0])"/>
+        </div>
+
+        <div>
+          <div class="section-lbl">✏️ النص / التعليق</div>
           <div class="compose">
-            <textarea id="bcMsg" placeholder="اكتب رسالتك هنا...&#10;&#10;مثال:&#10;🎉 عرض خاص من إفادة! خصم 30% على جميع الكورسات التقنية بكود IEFADA30 — العرض لفترة محدودة ⚡" oninput="updatePreview()"></textarea>
+            <textarea id="bcMsg" placeholder="اكتب نص الإعلان هنا...&#10;&#10;مثال:&#10;🎉 عرض خاص من إفادة! خصم 30% على جميع الكورسات التقنية بكود IEFADA30 — العرض لفترة محدودة ⚡" oninput="updatePreview()"></textarea>
             <div class="compose-foot">
               <span id="bcCharInfo">0 حرف</span>
               <span>الحد الأقصى 65,000 حرف</span>
@@ -485,10 +508,10 @@
         </div>
 
         <div class="toggle-card" onclick="toggleButtons()">
-          <div class="tc-icon">🔘</div>
+          <div class="tc-icon">👆</div>
           <div class="tc-info">
-            <strong>أزرار تفاعلية (مهتم / غير مهتم)</strong>
-            <span>يظهر للمستلم زرَّي "✅ مهتم" و "❌ غير مهتم" — قد لا تدعمها بعض إصدارات واتساب</span>
+            <strong>زر "أنا مهتم"</strong>
+            <span>يظهر للمستلم زر "← أنا مهتم" أسفل الرسالة — يتطلب دعم واتساب للأزرار</span>
           </div>
           <div class="sw" id="swBtn"></div>
         </div>
@@ -497,10 +520,12 @@
           <div class="section-lbl">👁️ معاينة</div>
           <div class="preview">
             <div class="pv-lbl">📱 كيف ستبدو الرسالة</div>
+            <div id="pvImgWrap" style="display:none;margin-bottom:8px">
+              <img id="pvImgThumb" src="" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px"/>
+            </div>
             <div class="pv-bubble empty" id="pvMsg">اكتب رسالتك لترى المعاينة هنا...</div>
             <div class="pv-btns" id="pvBtns" style="display:none">
-              <div class="pv-btn">✅ مهتم</div>
-              <div class="pv-btn">❌ غير مهتم</div>
+              <div class="pv-btn">← أنا مهتم</div>
             </div>
           </div>
         </div>
@@ -689,6 +714,8 @@
   let allContacts = [];
   let selectedJids = new Set();
   let withButtons  = false;
+  let broadcastImgBase64 = null;
+  let broadcastImgMime   = null;
 
   const $ = id => document.getElementById(id);
 
@@ -860,6 +887,46 @@
 
   function downloadContacts(){window.location.href='/api/owner/contacts/download'}
 
+  /* ── BROADCAST IMAGE ── */
+  function handleImgFile(file){
+    if(!file) return;
+    if(file.size > 5*1024*1024){showToast('⚠️ حجم الصورة أكبر من 5MB');return;}
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const dataUrl=e.target.result;
+      broadcastImgBase64=dataUrl.split(',')[1];
+      broadcastImgMime=file.type||'image/jpeg';
+      $('imgPreviewThumb').src=dataUrl;
+      $('imgPreviewThumb').style.display='block';
+      $('imgUploadPlaceholder').style.display='none';
+      $('imgClearBtn').style.display='block';
+      $('imgUploadArea').classList.add('has-img');
+      $('pvImgThumb').src=dataUrl;
+      $('pvImgWrap').style.display='block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleImgDrop(e){
+    e.preventDefault();
+    const file=e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) handleImgFile(file);
+  }
+
+  function clearImage(e){
+    e.stopPropagation();
+    broadcastImgBase64=null;
+    broadcastImgMime=null;
+    $('imgPreviewThumb').src='';
+    $('imgPreviewThumb').style.display='none';
+    $('imgUploadPlaceholder').style.display='flex';
+    $('imgClearBtn').style.display='none';
+    $('imgUploadArea').classList.remove('has-img');
+    $('imgFileInput').value='';
+    $('pvImgThumb').src='';
+    $('pvImgWrap').style.display='none';
+  }
+
   /* ── BROADCAST ── */
   function toggleButtons(){
     withButtons=!withButtons;
@@ -877,7 +944,7 @@
 
   async function sendBroadcast(){
     const msg=$('bcMsg').value.trim();
-    if(!msg){showToast('⚠️ اكتب الرسالة أولاً');return;}
+    if(!msg && !broadcastImgBase64){showToast('⚠️ أضف نصاً أو صورة على الأقل');return;}
     if(!selectedJids.size){showToast('⚠️ اختر مستلماً واحداً على الأقل');return;}
     const btn=$('sendBtn');
     btn.disabled=true;
@@ -887,9 +954,19 @@
     $('bcPb').style.width='15%';
     try{
       $('bcPb').style.width='55%';
+      const body={
+        ownerKey:OWN_KEY,
+        message:msg||'',
+        phones:[...selectedJids],
+        withButtons,
+      };
+      if(broadcastImgBase64){
+        body.imageBase64=broadcastImgBase64;
+        body.imageMime=broadcastImgMime;
+      }
       const r=await fetch('/api/owner/broadcast',{
         method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ownerKey:OWN_KEY,message:msg,phones:[...selectedJids],withButtons})
+        body:JSON.stringify(body)
       });
       const d=await r.json();
       $('bcPb').style.width='100%';

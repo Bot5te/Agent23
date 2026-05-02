@@ -778,40 +778,71 @@ app.post("/api/owner/change-cs-password", (req, res) => {
 
 // إرسال رسالة إعلانية
 app.post("/api/owner/broadcast", async (req, res) => {
-  const { ownerKey, message, phones, withButtons } = req.body;
+  const { ownerKey, message, phones, withButtons, imageBase64, imageMime } = req.body;
   const cfg = loadConfig();
   if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
-  if (!message || !phones || !phones.length) return res.status(400).json({ error: "بيانات ناقصة" });
+  if (!phones || !phones.length) return res.status(400).json({ error: "بيانات ناقصة" });
   if (!sock) return res.status(503).json({ error: "البوت غير متصل" });
+
+  const hasImage   = !!(imageBase64 && imageMime);
+  const hasMessage = !!(message && message.trim());
+  if (!hasImage && !hasMessage) return res.status(400).json({ error: "أرسل نصاً أو صورة على الأقل" });
+
+  const imgBuf = hasImage ? Buffer.from(imageBase64, "base64") : null;
 
   const results = [];
   for (const identifier of phones) {
-    // استخدم JID مباشرةً إن أُرسل، وإلا أنشئه من الرقم
     const jid = identifier.includes("@")
       ? identifier
       : identifier.replace(/\D/g, "") + "@s.whatsapp.net";
     try {
-      if (withButtons) {
-        try {
-          await sock.sendMessage(jid, {
-            text: message,
-            buttons: [
-              { buttonId: "interested",     buttonText: { displayText: "✅ مهتم" },     type: 1 },
-              { buttonId: "not_interested", buttonText: { displayText: "❌ غير مهتم" }, type: 1 },
-            ],
-            headerType: 1,
-          });
-        } catch (_) {
-          await sock.sendMessage(jid, { text: message });
+      if (hasImage) {
+        // صورة (مع كابشن اختياري) + زر "أنا مهتم" اختياري
+        const imgPayload = {
+          image: imgBuf,
+          mimetype: imageMime,
+          caption: hasMessage ? message : undefined,
+        };
+        if (withButtons) {
+          try {
+            await sock.sendMessage(jid, {
+              ...imgPayload,
+              buttons: [
+                { buttonId: "interested", buttonText: { displayText: "← أنا مهتم" }, type: 1 },
+              ],
+              footer: "",
+              headerType: 4,
+            });
+          } catch (_) {
+            // fallback: صورة بدون أزرار
+            await sock.sendMessage(jid, imgPayload);
+          }
+        } else {
+          await sock.sendMessage(jid, imgPayload);
         }
       } else {
-        await sock.sendMessage(jid, { text: message });
+        // نص فقط + زر اختياري
+        if (withButtons) {
+          try {
+            await sock.sendMessage(jid, {
+              text: message,
+              buttons: [
+                { buttonId: "interested", buttonText: { displayText: "← أنا مهتم" }, type: 1 },
+              ],
+              headerType: 1,
+            });
+          } catch (_) {
+            await sock.sendMessage(jid, { text: message });
+          }
+        } else {
+          await sock.sendMessage(jid, { text: message });
+        }
       }
       results.push({ id: identifier, ok: true });
     } catch (e) {
       results.push({ id: identifier, ok: false, error: e?.message || "فشل" });
     }
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 700));
   }
   res.json({ results, sent: results.filter(r => r.ok).length, failed: results.filter(r => !r.ok).length });
 });
