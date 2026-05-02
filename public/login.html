@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>إفادة — تسجيل الدخول</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:#0d0e12;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:'Segoe UI','Cairo',Tahoma,Arial,sans-serif;
+    }
+    .bg-glow{
+      position:fixed;inset:0;pointer-events:none;
+      background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(245,197,24,.08) 0%, transparent 70%);
+    }
+    .card{
+      width:100%;max-width:400px;
+      background:#13151d;
+      border:1px solid #2a2f45;
+      border-radius:20px;
+      padding:44px 38px 38px;
+      position:relative;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .card::before{
+      content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:60%;height:2px;
+      background:linear-gradient(90deg,transparent,#f5c518,transparent);
+      border-radius:2px;
+    }
+    .logo{
+      display:flex;align-items:center;justify-content:center;gap:12px;
+      margin-bottom:32px;
+    }
+    .logo-mark{
+      width:52px;height:52px;background:#f5c518;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;font-size:26px;
+      box-shadow:0 0 20px rgba(245,197,24,.3);
+    }
+    .logo-text h1{font-size:22px;font-weight:900;color:#eef0f6;letter-spacing:.3px}
+    .logo-text p{font-size:12px;color:#5c6380;margin-top:2px}
+
+    h2{font-size:16px;font-weight:700;color:#a0a8c0;text-align:center;margin-bottom:28px}
+
+    .field{margin-bottom:18px}
+    .field label{display:block;font-size:12.5px;color:#a0a8c0;margin-bottom:7px;font-weight:600}
+    .field input{
+      width:100%;padding:13px 16px;
+      background:#1b1e2a;border:1.5px solid #2a2f45;
+      border-radius:11px;color:#eef0f6;font-size:15px;
+      font-family:inherit;outline:none;
+      transition:border-color .2s,box-shadow .2s;
+      letter-spacing:2px;
+    }
+    .field input:focus{border-color:#f5c518;box-shadow:0 0 0 3px rgba(245,197,24,.1)}
+    .field input::placeholder{color:#3a3f58;letter-spacing:normal}
+
+    .btn{
+      width:100%;padding:14px;margin-top:8px;
+      background:#f5c518;color:#0d0e12;
+      border:none;border-radius:11px;
+      font-size:15px;font-weight:800;
+      cursor:pointer;font-family:inherit;
+      transition:opacity .2s,transform .1s,box-shadow .2s;
+      box-shadow:0 4px 20px rgba(245,197,24,.25);
+    }
+    .btn:hover{opacity:.92;box-shadow:0 6px 28px rgba(245,197,24,.35)}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+
+    .err{
+      margin-top:14px;padding:11px 14px;
+      background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+      border-radius:9px;color:#ef4444;font-size:13px;text-align:center;
+      display:none;
+    }
+    .err.show{display:block}
+
+    .spinner{
+      display:inline-block;width:16px;height:16px;
+      border:2px solid rgba(13,14,18,.3);border-top-color:#0d0e12;
+      border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;
+      margin-left:6px;display:none;
+    }
+    .btn.loading .spinner{display:inline-block}
+    .btn.loading .btn-text{opacity:.6}
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .hint{margin-top:22px;text-align:center;font-size:11.5px;color:#3a3f58;line-height:1.7}
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-mark">🤖</div>
+      <div class="logo-text">
+        <h1>إفادة</h1>
+        <p>نظام إدارة بوت واتساب</p>
+      </div>
+    </div>
+    <h2>أدخل كلمة المرور للمتابعة</h2>
+    <form onsubmit="event.preventDefault();doLogin()">
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input type="password" id="pwInput" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn" id="loginBtn" type="submit">
+      <span class="btn-text">دخول</span>
+      <span class="spinner"></span>
+    </button>
+    <div class="err" id="errMsg"></div>
+    </form>
+    <p class="hint">يمكنك الوصول للوحة خدمة العملاء أو لوحة المالك<br>باستخدام كلمة المرور المناسبة</p>
+  </div>
+
+  <script>
+    document.getElementById('pwInput').focus();
+
+    async function doLogin() {
+      const pw = document.getElementById('pwInput').value.trim();
+      if (!pw) return shake();
+      const btn = document.getElementById('loginBtn');
+      btn.classList.add('loading');
+      btn.disabled = true;
+      hideErr();
+      try {
+        const r = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ password: pw })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          window.location.href = d.redirect;
+        } else {
+          showErr(d.error || 'كلمة المرور غير صحيحة');
+          shake();
+        }
+      } catch(e) {
+        showErr('خطأ في الاتصال بالخادم');
+      } finally {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
+    }
+
+    function showErr(msg) {
+      const el = document.getElementById('errMsg');
+      el.textContent = '❌ ' + msg;
+      el.classList.add('show');
+    }
+    function hideErr() { document.getElementById('errMsg').classList.remove('show'); }
+
+    function shake() {
+      const card = document.querySelector('.card');
+      card.style.animation = 'none';
+      card.offsetHeight;
+      card.style.animation = 'shake .4s ease';
+    }
+    const style = document.createElement('style');
+    style.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}`;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

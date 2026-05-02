@@ -28,9 +28,7 @@ const IEFADA_COURSE_API = "https://www.iefada.com/api/v1/website/courses/{slug}"
 const IEFADA_URL = "https://www.iefada.com";
 const LOCAL_COURSES_FILE = "all_courses_details.json";
 const CUSTOM_KNOWLEDGE_FILE = "custom_knowledge.json";
-const PAUSED_USERS_FILE    = "paused_users.json";
-const CONTACTS_FILE        = "contacts.json";
-const CONFIG_FILE          = "bot_config.json";
+const PAUSED_USERS_FILE = "paused_users.json";
 
 const MAX_HISTORY = 4;
 
@@ -49,44 +47,6 @@ const groq = new Groq({ apiKey: GROQ_API_KEY });
 const conversationHistory = new Map();
 let coursesData = [];
 const _contextCache = {};
-
-// ==================== الإعداد العام ====================
-
-function loadConfig() {
-  try {
-    if (fs.existsSync(CONFIG_FILE)) return JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
-  } catch (e) {}
-  const defaults = { dashboardPassword: "cs1234", ownerPassword: "owner9999" };
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(defaults, null, 2), "utf-8");
-  return defaults;
-}
-
-function saveConfig(cfg) {
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2), "utf-8");
-}
-
-// ==================== جهات الاتصال ====================
-
-function loadContacts() {
-  try {
-    if (fs.existsSync(CONTACTS_FILE)) return JSON.parse(fs.readFileSync(CONTACTS_FILE, "utf-8"));
-  } catch (e) {}
-  return [];
-}
-
-function upsertContact(userId, name) {
-  const phone = userId.replace("@s.whatsapp.net", "");
-  const contacts = loadContacts();
-  const idx = contacts.findIndex(c => c.phone === phone);
-  const now = Date.now();
-  if (idx >= 0) {
-    contacts[idx].lastContact = now;
-    if (name && name !== phone) contacts[idx].name = name;
-  } else {
-    contacts.push({ phone, name: name || phone, firstContact: now, lastContact: now });
-  }
-  fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
-}
 
 // ==================== إدارة العملاء ====================
 
@@ -118,8 +78,7 @@ console.log(`✅ تم تحميل ${pausedUsers.size} مستخدم موقوف م�
 const clientsData = new Map();
 
 function updateClientData(userId, name, text, fromBot = false) {
-  const isNew = !clientsData.has(userId);
-  if (isNew) {
+  if (!clientsData.has(userId)) {
     clientsData.set(userId, {
       name: name || userId.replace("@s.whatsapp.net", ""),
       lastMessage: text,
@@ -133,10 +92,13 @@ function updateClientData(userId, name, text, fromBot = false) {
   data.lastMessage = text;
   data.lastTime = Date.now();
   if (!fromBot) data.messageCount++;
-  data.messages.push({ text, time: Date.now(), fromBot });
+  data.messages.push({
+    text,
+    time: Date.now(),
+    fromBot,
+  });
+  // احتفظ بآخر 50 رسالة فقط
   if (data.messages.length > 50) data.messages = data.messages.slice(-50);
-  // حفظ جهة الاتصال عند أول رسالة من العميل (ليس من البوت)
-  if (!fromBot) upsertContact(userId, name);
 }
 
 global.qrCodeUrl = null;
@@ -500,21 +462,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/", (req, res) => res.redirect("/login"));
-
-// صفحة تسجيل الدخول
-app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
-});
-
-// التحقق من الباسورد
-app.post("/api/auth/login", (req, res) => {
-  const { password } = req.body;
-  const cfg = loadConfig();
-  if (password === cfg.dashboardPassword) return res.json({ role: "cs", redirect: `/dashboard/${password}` });
-  if (password === cfg.ownerPassword)    return res.json({ role: "owner", redirect: `/owner/${password}` });
-  res.status(401).json({ error: "كلمة المرور غير صحيحة" });
-});
+app.get("/", (req, res) => res.redirect("/dashboard"));
 
 app.get("/qr", (req, res) => {
   if (global.qrCodeUrl) {
@@ -606,106 +554,8 @@ app.get("/api/stats", (req, res) => {
   });
 });
 
-// ===== حماية الداشبورد بالباسورد =====
-app.get("/dashboard/:key", (req, res) => {
-  const cfg = loadConfig();
-  if (req.params.key !== cfg.dashboardPassword) return res.status(403).send("❌ كلمة المرور غير صحيحة");
+app.get("/dashboard", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard.html"));
-});
-
-app.get("/owner/:key", (req, res) => {
-  const cfg = loadConfig();
-  if (req.params.key !== cfg.ownerPassword) return res.status(403).send("❌ كلمة المرور غير صحيحة");
-  res.sendFile(path.join(__dirname, "public", "owner.html"));
-});
-
-// ===== APIs المالك =====
-
-// إحصائيات المالك (شهرية وأسبوعية)
-app.get("/api/owner/stats", (req, res) => {
-  const contacts = loadContacts();
-  const now = Date.now();
-  const ms = { day: 86400000, week: 604800000, month: 2592000000 };
-  res.json({
-    total:     contacts.length,
-    today:     contacts.filter(c => now - c.lastContact < ms.day).length,
-    thisWeek:  contacts.filter(c => now - c.lastContact < ms.week).length,
-    thisMonth: contacts.filter(c => now - c.lastContact < ms.month).length,
-    botConnected: !!sock,
-    totalSessions: clientsData.size,
-    pausedSessions: pausedUsers.size,
-    monthlyBreakdown: buildMonthlyBreakdown(contacts),
-  });
-});
-
-function buildMonthlyBreakdown(contacts) {
-  const map = {};
-  for (const c of contacts) {
-    const d = new Date(c.firstContact);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-    map[key] = (map[key] || 0) + 1;
-  }
-  return Object.entries(map).sort().slice(-6).map(([k,v]) => ({ month: k, count: v }));
-}
-
-// تحميل جهات الاتصال
-app.get("/api/owner/contacts", (req, res) => {
-  res.json(loadContacts());
-});
-
-app.get("/api/owner/contacts/download", (req, res) => {
-  const contacts = loadContacts();
-  res.setHeader("Content-Disposition", `attachment; filename="iefada_contacts_${Date.now()}.json"`);
-  res.setHeader("Content-Type", "application/json");
-  res.send(JSON.stringify(contacts, null, 2));
-});
-
-// تغيير باسورد خدمة العملاء
-app.post("/api/owner/change-cs-password", (req, res) => {
-  const { ownerKey, newPassword } = req.body;
-  const cfg = loadConfig();
-  if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
-  if (!newPassword || newPassword.length < 4) return res.status(400).json({ error: "الباسورد قصير جداً" });
-  cfg.dashboardPassword = newPassword;
-  saveConfig(cfg);
-  res.json({ ok: true });
-});
-
-// إرسال رسالة إعلانية
-app.post("/api/owner/broadcast", async (req, res) => {
-  const { ownerKey, message, phones, withButtons } = req.body;
-  const cfg = loadConfig();
-  if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
-  if (!message || !phones || !phones.length) return res.status(400).json({ error: "بيانات ناقصة" });
-  if (!sock) return res.status(503).json({ error: "البوت غير متصل" });
-
-  const results = [];
-  for (const phone of phones) {
-    const jid = phone.replace(/\D/g, "") + "@s.whatsapp.net";
-    try {
-      if (withButtons) {
-        try {
-          await sock.sendMessage(jid, {
-            text: message,
-            buttons: [
-              { buttonId: "interested",     buttonText: { displayText: "✅ مهتم" },     type: 1 },
-              { buttonId: "not_interested", buttonText: { displayText: "❌ غير مهتم" }, type: 1 },
-            ],
-            headerType: 1,
-          });
-        } catch (_) {
-          await sock.sendMessage(jid, { text: message });
-        }
-      } else {
-        await sock.sendMessage(jid, { text: message });
-      }
-      results.push({ phone, ok: true });
-    } catch (e) {
-      results.push({ phone, ok: false, error: e?.message || "فشل" });
-    }
-    await new Promise(r => setTimeout(r, 600));
-  }
-  res.json({ results, sent: results.filter(r => r.ok).length, failed: results.filter(r => !r.ok).length });
 });
 
 app.listen(5000, "0.0.0.0", () => {
