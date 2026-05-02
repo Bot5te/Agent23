@@ -1,641 +1,214 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>لوحة تحكم إفادة</title>
   <style>
-    :root {
-      --bg:          #0d0e12;
-      --surface:     #13151d;
-      --surface2:    #1b1e2a;
-      --surface3:    #222636;
-      --border:      #2a2f45;
-      --border-soft: #22263a;
-
-      --gold:        #f5c518;
-      --gold-dark:   #c9a012;
-      --gold-glow:   rgba(245,197,24,0.18);
-      --gold-soft:   rgba(245,197,24,0.08);
-
-      --green:       #22c55e;
-      --green-soft:  rgba(34,197,94,0.12);
-      --blue:        #3b82f6;
-      --blue-soft:   rgba(59,130,246,0.12);
-      --red:         #ef4444;
-      --red-soft:    rgba(239,68,68,0.12);
-
-      --text:        #eef0f6;
-      --text-2:      #a0a8c0;
-      --text-3:      #5c6380;
+    :root{
+      --bg:#0a0b0f; --s1:#11131b; --s2:#181a25; --s3:#1f2230; --s4:#252838;
+      --border:#252838; --bs:#1c1f2e;
+      --gold:#f5c518; --gold-d:#c9a012;
+      --gold-g:rgba(245,197,24,.2); --gold-s:rgba(245,197,24,.07);
+      --green:#22c55e; --green-s:rgba(34,197,94,.1);
+      --blue:#3b82f6;  --blue-s:rgba(59,130,246,.1);
+      --red:#ef4444;   --red-s:rgba(239,68,68,.1);
+      --text:#e8eaf2; --t2:#9097b5; --t3:#4d5470;
     }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Cairo',Tahoma,Arial,sans-serif;min-height:100vh;font-size:14px}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', 'Cairo', Tahoma, Arial, sans-serif;
-      min-height: 100vh;
+    /* ═══ HEADER ═══ */
+    header{
+      background:var(--s1);border-bottom:1px solid var(--bs);
+      padding:0 20px;height:58px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:200;
     }
+    .logo{display:flex;align-items:center;gap:11px}
+    .logo-mark{width:38px;height:38px;background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 2px 14px var(--gold-g)}
+    .logo-text strong{display:block;font-size:14px;font-weight:800}
+    .logo-text span{font-size:10.5px;color:var(--t3);display:block;margin-top:1px}
+    .header-r{display:flex;align-items:center;gap:8px}
+    .pill{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;cursor:default}
+    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .dot.g{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+    .dot.r{background:var(--red);box-shadow:0 0 6px var(--red)}
+    .dot.y{background:var(--gold);box-shadow:0 0 6px var(--gold);animation:blink 1.2s infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-    /* ═══════════════ HEADER ═══════════════ */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border-soft);
-      padding: 0 28px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    /* QR header button */
+    .qr-hbtn{
+      display:flex;align-items:center;gap:6px;
+      padding:6px 12px;border-radius:20px;
+      background:var(--gold-s);border:1px solid rgba(245,197,24,.2);
+      color:var(--gold);font-size:12px;font-weight:700;
+      cursor:pointer;transition:background .2s;
+      font-family:inherit;
     }
+    .qr-hbtn:hover{background:rgba(245,197,24,.14)}
+    .qr-hbtn.connected{background:var(--green-s);border-color:rgba(34,197,94,.2);color:var(--green)}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    /* ═══ STATS ═══ */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px 20px 6px}
+    .stat{background:var(--s1);border:1px solid var(--bs);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;transition:border-color .2s}
+    .stat:hover{border-color:rgba(245,197,24,.18)}
+    .stat::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--c,var(--gold));border-radius:0 14px 14px 0}
+    .stat.c-gold{--c:var(--gold)} .stat.c-green{--c:var(--green)} .stat.c-blue{--c:var(--blue)}
+    .stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .stat.c-gold .stat-icon{background:var(--gold-s)} .stat.c-green .stat-icon{background:var(--green-s)} .stat.c-blue .stat-icon{background:var(--blue-s)}
+    .stat-b h3{font-size:28px;font-weight:900;line-height:1;letter-spacing:-.5px}
+    .stat.c-gold .stat-b h3{color:var(--gold)} .stat.c-green .stat-b h3{color:var(--green)} .stat.c-blue .stat-b h3{color:var(--blue)}
+    .stat-b p{font-size:11.5px;color:var(--t2);margin-top:4px}
 
-    .logo-mark {
-      width: 38px;
-      height: 38px;
-      background: var(--gold);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
-      flex-shrink: 0;
-    }
+    /* ═══ TABS ═══ */
+    .tab-bar{display:flex;gap:3px;padding:12px 20px 0;overflow-x:auto}
+    .tab-bar::-webkit-scrollbar{height:0}
+    .tab{padding:8px 18px;font-size:13px;font-weight:600;color:var(--t3);background:none;border:1px solid transparent;border-radius:10px 10px 0 0;cursor:pointer;font-family:inherit;transition:all .2s;white-space:nowrap}
+    .tab.active{color:var(--gold);background:var(--s1);border-color:var(--bs);border-bottom-color:var(--s1)}
+    .tab:hover:not(.active){color:var(--t2)}
+    .tab-body{background:var(--s1);border:1px solid var(--bs);border-radius:0 14px 14px 14px;margin:0 20px 24px;padding:20px}
+    .tab-pane{display:none} .tab-pane.active{display:block}
 
-    .logo-text strong {
-      display: block;
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: 0.2px;
-    }
-    .logo-text span {
-      font-size: 11px;
-      color: var(--text-3);
-    }
+    /* ═══ CONVERSATIONS ═══ */
+    .conv-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;height:calc(100vh - 260px);min-height:400px}
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    /* client list */
+    .clients-wrap{background:var(--s2);border:1px solid var(--bs);border-radius:13px;display:flex;flex-direction:column;overflow:hidden}
+    .panel-head{padding:12px 14px;border-bottom:1px solid var(--bs);display:flex;align-items:center;justify-content:space-between;background:var(--s3);flex-shrink:0}
+    .panel-head h2{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+    .srch{background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 10px;font-size:12.5px;width:160px;outline:none;font-family:inherit;transition:border-color .2s}
+    .srch:focus{border-color:var(--gold)} .srch::placeholder{color:var(--t3)}
+    .clients-list{flex:1;overflow-y:auto;padding:5px}
 
-    .bot-pill {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 12.5px;
-      font-weight: 500;
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s infinite; }
-    .dot.red   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
-    .dot.gold  { background: var(--gold);  box-shadow: 0 0 6px var(--gold); animation: blink 2s infinite; }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    /* ═══════════════ STATS ═══════════════ */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      padding: 20px 28px 4px;
-    }
-
-    .stat {
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: 14px;
-      padding: 18px 20px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat::before {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 3px;
-      height: 100%;
-      background: var(--stripe, var(--gold));
-      border-radius: 0 14px 14px 0;
-    }
-
-    .stat.s-gold  { --stripe: var(--gold); }
-    .stat.s-green { --stripe: var(--green); }
-    .stat.s-blue  { --stripe: var(--blue); }
-
-    .stat-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-      flex-shrink: 0;
-    }
-
-    .stat.s-gold  .stat-icon { background: var(--gold-soft); }
-    .stat.s-green .stat-icon { background: var(--green-soft); }
-    .stat.s-blue  .stat-icon { background: var(--blue-soft); }
-
-    .stat-body h3 {
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1;
-    }
-    .stat.s-gold  .stat-body h3 { color: var(--gold); }
-    .stat.s-green .stat-body h3 { color: var(--green); }
-    .stat.s-blue  .stat-body h3 { color: var(--blue); }
-
-    .stat-body p {
-      font-size: 12px;
-      color: var(--text-2);
-      margin-top: 4px;
-    }
-
-    /* ═══════════════ TABS ═══════════════ */
-    .tab-bar {
-      display: flex;
-      gap: 4px;
-      padding: 18px 28px 0;
-    }
-
-    .tab {
-      padding: 9px 20px;
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--text-3);
-      background: none;
-      border: 1px solid transparent;
-      border-radius: 10px 10px 0 0;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all .2s;
-      position: relative;
-    }
-
-    .tab.active {
-      color: var(--gold);
-      background: var(--surface);
-      border-color: var(--border-soft);
-      border-bottom-color: var(--surface);
-    }
-
-    .tab:hover:not(.active) { color: var(--text-2); }
-
-    .tab-body {
-      background: var(--surface);
-      border: 1px solid var(--border-soft);
-      border-radius: 0 14px 14px 14px;
-      margin: 0 28px 28px;
-      padding: 24px;
-    }
-
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    /* ═══════════════ CONVERSATIONS LAYOUT ═══════════════ */
-    .conv-grid {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 20px;
-      height: calc(100vh - 262px);
-    }
-
-    /* clients list */
-    .clients-wrap {
-      background: var(--surface2);
-      border: 1px solid var(--border-soft);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .panel-head {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-soft);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--surface);
-    }
-
-    .panel-head h2 {
-      font-size: 13.5px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .search-wrap {
-      position: relative;
-    }
-
-    .search-wrap input {
-      background: var(--surface3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 7px 32px 7px 12px;
-      font-size: 12.5px;
-      width: 175px;
-      outline: none;
-      font-family: inherit;
-      transition: border-color .2s;
-    }
-
-    .search-wrap input:focus { border-color: var(--gold); }
-    .search-wrap input::placeholder { color: var(--text-3); }
-
-    .search-wrap .sicon {
-      position: absolute;
-      right: 9px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 13px;
-      pointer-events: none;
-    }
-
-    .clients-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding: 6px;
-    }
-
-    .clients-scroll::-webkit-scrollbar { width: 3px; }
-    .clients-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .client-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background .15s;
-      border: 1px solid transparent;
-    }
-
-    .client-row:hover { background: var(--surface3); }
-
-    .client-row.sel {
-      background: var(--gold-soft);
-      border-color: rgba(245,197,24,.25);
-    }
-
-    .av-wrap { position: relative; flex-shrink: 0; }
-
-    .av {
-      width: 41px;
-      height: 41px;
-      border-radius: 50%;
-      background: linear-gradient(135deg,#2a2f45,#3a3f58);
-      border: 2px solid var(--gold);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--gold);
-    }
-
-    .badge {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 2px solid var(--surface2);
-    }
-
-    .badge.green { background: var(--green); box-shadow: 0 0 4px var(--green); }
-    .badge.blue  { background: var(--blue);  box-shadow: 0 0 4px var(--blue); }
-
-    .client-info { flex: 1; min-width: 0; }
-
-    .ci-name {
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .ci-preview {
-      font-size: 11.5px;
-      color: var(--text-2);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-top: 2px;
-    }
-
-    .client-meta {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 5px;
-      flex-shrink: 0;
-    }
-
-    .ci-time { font-size: 10.5px; color: var(--text-3); }
-
-    .tbtn {
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 6px;
-      border: 1px solid;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 600;
-      transition: all .2s;
-    }
-
-    .tbtn.stop {
-      background: var(--red-soft);
-      color: var(--red);
-      border-color: rgba(239,68,68,.28);
-    }
-
-    .tbtn.stop:hover { background: rgba(239,68,68,.22); }
-
-    .tbtn.resume {
-      background: var(--green-soft);
-      color: var(--green);
-      border-color: rgba(34,197,94,.28);
-    }
-
-    .tbtn.resume:hover { background: rgba(34,197,94,.22); }
+    .cr{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:2px}
+    .cr:hover{background:var(--s3)}
+    .cr.sel{background:var(--gold-s);border-color:rgba(245,197,24,.2)}
+    .av-w{position:relative;flex-shrink:0}
+    .av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#22263a,#2e3450);border:1.5px solid rgba(245,197,24,.3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--gold)}
+    .av.sm{width:34px;height:34px;font-size:12px}
+    .st-badge{position:absolute;bottom:0;left:0;width:11px;height:11px;border-radius:50%;border:2px solid var(--s2)}
+    .st-badge.g{background:var(--green);box-shadow:0 0 4px var(--green)}
+    .st-badge.b{background:var(--blue);box-shadow:0 0 4px var(--blue)}
+    .ci-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+    .ci-prev{font-size:11.5px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;max-width:160px}
+    .ci-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-right:auto}
+    .ci-time{font-size:10.5px;color:var(--t3)}
+    .tbtn{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid;cursor:pointer;font-family:inherit;font-weight:700;transition:all .15s;white-space:nowrap}
+    .tbtn.stop{background:var(--red-s);color:var(--red);border-color:rgba(239,68,68,.25)}
+    .tbtn.resume{background:var(--green-s);color:var(--green);border-color:rgba(34,197,94,.25)}
+    .tbtn.stop:hover{background:rgba(239,68,68,.18)} .tbtn.resume:hover{background:rgba(34,197,94,.18)}
+    .empty-box{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--t3);gap:8px;padding:40px 20px;flex:1}
+    .empty-box .ei{font-size:32px;opacity:.25}
+    .empty-box p{font-size:12.5px}
 
     /* chat panel */
-    .chat-wrap {
-      background: var(--surface2);
-      border: 1px solid var(--border-soft);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+    .chat-wrap{background:var(--s2);border:1px solid var(--bs);border-radius:13px;display:flex;flex-direction:column;overflow:hidden}
+    .chat-head{padding:11px 14px;border-bottom:1px solid var(--bs);display:flex;align-items:center;gap:9px;background:var(--s3);flex-shrink:0}
+    .ch-info strong{font-size:13px;display:block}
+    .ch-info span{font-size:11px;color:var(--t2)}
+    .back-btn{display:none;background:none;border:none;color:var(--t2);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:6px;line-height:1}
+    .back-btn:hover{color:var(--text);background:var(--s4)}
+    .chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:7px}
+    .bubble{max-width:85%;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.6;word-break:break-word}
+    .bubble.usr{background:var(--s3);align-self:flex-start;border-bottom-right-radius:3px}
+    .bubble.bot{background:var(--gold-s);border:1px solid rgba(245,197,24,.18);align-self:flex-end;border-bottom-left-radius:3px}
+    .btime{font-size:10px;color:var(--t3);margin-top:3px;display:block}
+
+    /* ═══ KNOWLEDGE ═══ */
+    .know-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .kcard{background:var(--s2);border:1px solid var(--bs);border-radius:13px;overflow:hidden;display:flex;flex-direction:column}
+    .kcard-head{padding:13px 15px;border-bottom:1px solid var(--bs);background:var(--s3);display:flex;align-items:center;gap:9px}
+    .k-icon{width:34px;height:34px;border-radius:9px;background:var(--gold-s);border:1px solid rgba(245,197,24,.18);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+    .kcard-head h3{font-size:13.5px;font-weight:700}
+    .kcard-head p{font-size:11px;color:var(--t3);margin-top:1px}
+    .kcard-body{padding:13px;flex:1;display:flex;flex-direction:column;gap:9px}
+    .kta{width:100%;min-height:130px;background:var(--s3);border:1.5px solid var(--border);border-radius:9px;color:var(--text);padding:11px;font-size:13px;font-family:inherit;resize:vertical;outline:none;line-height:1.65;transition:border-color .2s,box-shadow .2s}
+    .kta:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-s)} .kta::placeholder{color:var(--t3);font-size:12px}
+    .kcc{font-size:11px;color:var(--t3)}
+    .kactions{display:flex;gap:7px}
+    .ksave{flex:1;padding:9px;background:var(--gold);color:#0a0b0f;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s,background .2s}
+    .ksave:hover{opacity:.9} .ksave.saved{background:var(--green);color:#fff}
+    .kclear{padding:9px 11px;background:var(--red-s);color:var(--red);border:1px solid rgba(239,68,68,.22);border-radius:9px;font-size:13px;cursor:pointer;font-family:inherit;transition:background .2s}
+    .kclear:hover{background:rgba(239,68,68,.18)}
+    .kstatus{font-size:11px;padding:7px 13px;border-top:1px solid var(--bs);color:var(--t3);display:flex;align-items:center;gap:5px}
+    .kstatus.has{color:var(--green)}
+
+    /* ═══ QR TAB ═══ */
+    .qr-section{display:flex;flex-direction:column;align-items:center;gap:20px;padding:10px 0}
+    .qr-card{background:var(--s2);border:1px solid var(--bs);border-radius:16px;padding:28px;max-width:400px;width:100%;text-align:center}
+    .qr-card h2{font-size:17px;font-weight:800;margin-bottom:6px}
+    .qr-card p{font-size:12.5px;color:var(--t2);line-height:1.7;margin-bottom:20px}
+    .qr-frame{width:240px;height:240px;margin:0 auto;border-radius:14px;overflow:hidden;background:var(--s3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center}
+    .qr-frame img{width:100%;height:100%;object-fit:contain}
+    .qr-frame.loading{flex-direction:column;gap:10px;color:var(--t3);font-size:12px}
+    .qr-frame.connected{flex-direction:column;gap:10px}
+    .qr-conn-icon{font-size:52px}
+    .qr-timer{font-size:12px;color:var(--t3);margin-top:10px}
+    .qr-steps{background:var(--s2);border:1px solid var(--bs);border-radius:13px;padding:18px;max-width:400px;width:100%;text-align:right}
+    .qr-steps h3{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--t2)}
+    .qr-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(37,40,56,.5)}
+    .qr-step:last-child{border-bottom:none}
+    .step-num{width:24px;height:24px;border-radius:50%;background:var(--gold-s);border:1px solid rgba(245,197,24,.2);color:var(--gold);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step-txt{font-size:12.5px;color:var(--t2);line-height:1.6}
+    .qr-refresh-btn{padding:10px 24px;background:var(--gold);color:#0a0b0f;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .2s;display:flex;align-items:center;gap:8px}
+    .qr-refresh-btn:hover{opacity:.88}
+    .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(10,11,15,.3);border-top-color:#0a0b0f;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ═══ QR MODAL (floating) ═══ */
+    .qr-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .qr-modal-bg.open{display:flex}
+    .qr-modal{background:var(--s1);border:1px solid var(--bs);border-radius:20px;padding:28px;width:90%;max-width:360px;text-align:center;position:relative;animation:popIn .25s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes popIn{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+    .qr-modal h2{font-size:17px;font-weight:800;margin-bottom:6px}
+    .qr-modal p{font-size:12px;color:var(--t2);margin-bottom:18px;line-height:1.65}
+    .qr-modal .close-btn{position:absolute;top:14px;left:14px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t2);font-size:16px;cursor:pointer;padding:4px 9px;line-height:1;transition:color .15s}
+    .qr-modal .close-btn:hover{color:var(--text)}
+    .modal-qr-frame{width:210px;height:210px;margin:0 auto 14px;border-radius:12px;overflow:hidden;background:var(--s3);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center}
+    .modal-qr-frame img{width:100%;height:100%;object-fit:contain}
+    .modal-timer{font-size:11.5px;color:var(--t3);margin-bottom:14px}
+    .open-full-btn{padding:9px 20px;background:var(--s2);border:1px solid var(--border);border-radius:9px;color:var(--t2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+    .open-full-btn:hover{color:var(--text);border-color:var(--gold)}
+
+    /* ═══ TOAST ═══ */
+    .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;box-shadow:0 8px 28px rgba(0,0,0,.5);white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+
+    /* ═══ MOBILE RESPONSIVE ═══ */
+    @media(max-width:768px){
+      .stats{grid-template-columns:1fr 1fr;padding:14px 14px 4px}
+      .stat:last-child{grid-column:1/-1}
+      .tab-bar,.tab-body{margin-left:14px;margin-right:14px}
+      .tab-body{padding:14px;border-radius:0 12px 12px 12px}
+      .tab{padding:8px 14px;font-size:12.5px}
+      .conv-grid{grid-template-columns:1fr;height:auto;min-height:unset}
+      .clients-wrap{height:320px}
+      .chat-wrap{height:380px}
+      .know-grid{grid-template-columns:1fr}
+      header{padding:0 14px}
+      .logo-text span{display:none}
+      .back-btn{display:inline-block}
     }
-
-    .chat-head {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-soft);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--surface);
+    @media(max-width:480px){
+      .stats{grid-template-columns:1fr 1fr}
+      .stat.c-blue{grid-column:1/-1}
+      .qr-hbtn span{display:none}
+      header{height:52px}
     }
-
-    .chat-head .av { width: 34px; height: 34px; font-size: 13px; }
-
-    .ch-info strong { font-size: 13px; display: block; }
-    .ch-info span   { font-size: 11px; color: var(--text-2); }
-
-    .chat-msgs {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .chat-msgs::-webkit-scrollbar { width: 3px; }
-    .chat-msgs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    .empty-box {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-3);
-      gap: 8px;
-    }
-
-    .empty-box .eicon { font-size: 34px; opacity: .3; }
-    .empty-box p { font-size: 12.5px; }
-
-    .bubble {
-      max-width: 86%;
-      padding: 9px 13px;
-      border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.55;
-      word-break: break-word;
-    }
-
-    .bubble.usr {
-      background: var(--surface3);
-      align-self: flex-start;
-      border-bottom-right-radius: 3px;
-    }
-
-    .bubble.bot {
-      background: var(--gold-soft);
-      border: 1px solid rgba(245,197,24,.2);
-      align-self: flex-end;
-      border-bottom-left-radius: 3px;
-    }
-
-    .btime {
-      font-size: 10px;
-      color: var(--text-3);
-      margin-top: 3px;
-      display: block;
-    }
-
-    /* ═══════════════ KNOWLEDGE ═══════════════ */
-    .know-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-    }
-
-    .know-card {
-      background: var(--surface2);
-      border: 1px solid var(--border-soft);
-      border-radius: 14px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .know-card-head {
-      padding: 14px 16px 12px;
-      border-bottom: 1px solid var(--border-soft);
-      background: var(--surface);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .know-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 9px;
-      background: var(--gold-soft);
-      border: 1px solid rgba(245,197,24,.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
-
-    .know-card-head h3 {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .know-card-head p {
-      font-size: 11px;
-      color: var(--text-3);
-      margin-top: 2px;
-    }
-
-    .know-body {
-      padding: 14px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .know-textarea {
-      width: 100%;
-      min-height: 140px;
-      background: var(--surface3);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      color: var(--text);
-      padding: 11px;
-      font-size: 13px;
-      font-family: inherit;
-      resize: vertical;
-      outline: none;
-      line-height: 1.65;
-      transition: border-color .2s;
-    }
-
-    .know-textarea:focus { border-color: var(--gold); }
-    .know-textarea::placeholder { color: var(--text-3); font-size: 12px; }
-
-    .char-count {
-      font-size: 11px;
-      color: var(--text-3);
-      text-align: left;
-    }
-
-    .know-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-save {
-      flex: 1;
-      padding: 9px 0;
-      background: var(--gold);
-      color: #0d0e12;
-      border: none;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity .2s, transform .1s;
-    }
-
-    .btn-save:hover   { opacity: .9; }
-    .btn-save:active  { transform: scale(.97); }
-    .btn-save.saved   { background: var(--green); color: #fff; }
-
-    .btn-clear {
-      padding: 9px 12px;
-      background: var(--red-soft);
-      color: var(--red);
-      border: 1px solid rgba(239,68,68,.25);
-      border-radius: 9px;
-      font-size: 13px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background .2s;
-    }
-
-    .btn-clear:hover { background: rgba(239,68,68,.22); }
-
-    /* status bar under card */
-    .know-status {
-      font-size: 11px;
-      padding: 7px 14px;
-      border-top: 1px solid var(--border-soft);
-      color: var(--text-3);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .know-status.has-data { color: var(--green); }
-
-    /* ═══════════════ TOAST ═══════════════ */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(70px);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 22px;
-      font-size: 13px;
-      transition: transform .3s;
-      z-index: 999;
-      box-shadow: 0 6px 24px rgba(0,0,0,.5);
-    }
-
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ═══════════════ RESPONSIVE ═══════════════ */
-    @media (max-width: 900px) {
-      .conv-grid { grid-template-columns: 1fr; }
-      .know-grid { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: 1fr 1fr; }
-      header { padding: 0 14px; }
-      .tab-bar, .tab-body { margin-left: 14px; margin-right: 14px; }
+    @media(min-width:769px){
+      .mobile-chat-toggle{display:none !important}
+      .chat-wrap,.clients-wrap{display:flex !important}
     }
   </style>
 </head>
 <body>
 
-<!-- ════════════ HEADER ════════════ -->
+<!-- ═══ HEADER ═══ -->
 <header>
   <div class="logo">
     <div class="logo-mark">🤖</div>
@@ -644,87 +217,68 @@
       <span>إدارة بوت واتساب</span>
     </div>
   </div>
-  <div class="header-right">
-    <div class="bot-pill">
-      <div class="dot red" id="statusDot"></div>
+  <div class="header-r">
+    <button class="qr-hbtn" id="qrHBtn" onclick="openQRModal()">
+      <span>📱</span><span>ربط واتساب</span>
+    </button>
+    <div class="pill">
+      <div class="dot r" id="statusDot"></div>
       <span id="statusText">جاري التحقق...</span>
     </div>
   </div>
 </header>
 
-<!-- ════════════ STATS ════════════ -->
+<!-- ═══ STATS ═══ -->
 <div class="stats">
-  <div class="stat s-gold">
+  <div class="stat c-gold">
     <div class="stat-icon">👥</div>
-    <div class="stat-body">
-      <h3 id="sTotal">—</h3>
-      <p>إجمالي العملاء</p>
-    </div>
+    <div class="stat-b"><h3 id="sTotal">—</h3><p>إجمالي العملاء</p></div>
   </div>
-  <div class="stat s-green">
+  <div class="stat c-green">
     <div class="stat-icon">🟢</div>
-    <div class="stat-body">
-      <h3 id="sActive">—</h3>
-      <p>البوت نشط</p>
-    </div>
+    <div class="stat-b"><h3 id="sActive">—</h3><p>البوت نشط</p></div>
   </div>
-  <div class="stat s-blue">
-    <div class="stat-icon">🔵</div>
-    <div class="stat-body">
-      <h3 id="sPaused">—</h3>
-      <p>فريق الدعم يتابع</p>
-    </div>
+  <div class="stat c-blue">
+    <div class="stat-icon">👤</div>
+    <div class="stat-b"><h3 id="sPaused">—</h3><p>مع فريق الدعم</p></div>
   </div>
 </div>
 
-<!-- ════════════ TABS ════════════ -->
+<!-- ═══ TABS ═══ -->
 <div class="tab-bar">
   <button class="tab active" onclick="switchTab('conv',this)">💬 المحادثات</button>
   <button class="tab" onclick="switchTab('know',this)">📚 معلومات البوت</button>
+  <button class="tab" onclick="switchTab('qr',this);loadQRTab()">📱 ربط واتساب</button>
 </div>
 
 <div class="tab-body">
 
   <!-- ── محادثات ── -->
   <div class="tab-pane active" id="pane-conv">
-    <div class="conv-grid">
+    <div class="conv-grid" id="convGrid">
 
       <!-- قائمة العملاء -->
-      <div class="clients-wrap">
+      <div class="clients-wrap" id="clientsPane">
         <div class="panel-head">
-          <h2>💬 المحادثات</h2>
-          <div class="search-wrap">
-            <span class="sicon">🔍</span>
-            <input type="text" id="searchInput" placeholder="بحث عن عميل..." oninput="filterClients()" />
-          </div>
+          <h2>💬 المحادثات <span id="clientCount" style="color:var(--t3);font-weight:500;font-size:12px"></span></h2>
+          <input class="srch" type="text" id="searchInput" placeholder="🔍 بحث..." oninput="filterClients()"/>
         </div>
-        <div class="clients-scroll" id="clientsList">
-          <div class="empty-box" style="padding:40px 0">
-            <div class="eicon">💬</div>
-            <p>لا توجد محادثات بعد</p>
-          </div>
+        <div class="clients-list" id="clientsList">
+          <div class="empty-box"><div class="ei">💬</div><p>لا توجد محادثات بعد</p></div>
         </div>
       </div>
 
       <!-- المحادثة -->
-      <div class="chat-wrap">
+      <div class="chat-wrap" id="chatPane">
         <div class="chat-head" id="chatHead" style="display:none">
-          <div class="av-wrap">
-            <div class="av" id="chatAv"></div>
-          </div>
-          <div class="ch-info">
-            <strong id="chatName"></strong>
-            <span id="chatSub"></span>
-          </div>
+          <button class="back-btn" onclick="showClientsList()">←</button>
+          <div class="av-w"><div class="av sm" id="chatAv"></div></div>
+          <div class="ch-info"><strong id="chatName"></strong><span id="chatSub"></span></div>
         </div>
         <div class="chat-msgs" id="chatMsgs">
-          <div class="empty-box">
-            <div class="eicon">💬</div>
-            <p>اختر محادثة من القائمة</p>
-          </div>
+          <div class="empty-box"><div class="ei">💬</div><p>اختر محادثة من القائمة</p></div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -732,300 +286,410 @@
   <div class="tab-pane" id="pane-know">
     <div class="know-grid">
 
-      <!-- عروض وخصومات -->
-      <div class="know-card" id="card-offers">
-        <div class="know-card-head">
-          <div class="know-icon">🎁</div>
-          <div>
-            <h3>عروض وخصومات</h3>
-            <p>كودات، خصومات، عروض مؤقتة</p>
+      <div class="kcard">
+        <div class="kcard-head">
+          <div class="k-icon">🎁</div>
+          <div><h3>عروض وخصومات</h3><p>كودات، خصومات، عروض مؤقتة</p></div>
+        </div>
+        <div class="kcard-body">
+          <textarea class="kta" id="ta-offers" placeholder="مثال:&#10;خصم 20% على جميع الكورسات بكود IEFADA20" oninput="updateChar('offers')"></textarea>
+          <div class="kcc" id="cc-offers">0 حرف</div>
+          <div class="kactions">
+            <button class="ksave" id="bs-offers" onclick="saveSection('offers')">💾 حفظ</button>
+            <button class="kclear" onclick="clearSection('offers')">🗑</button>
           </div>
         </div>
-        <div class="know-body">
-          <textarea class="know-textarea" id="ta-offers"
-            placeholder="مثال:
-خصم 20% على جميع الكورسات بكود IEFADA20
-عرض محدود: كورس Python بـ 29 ريال فقط"
-            oninput="updateChar('offers')"></textarea>
-          <div class="char-count" id="cc-offers">0 حرف</div>
-          <div class="know-actions">
-            <button class="btn-save" id="bs-offers" onclick="saveSection('offers')">💾 حفظ</button>
-            <button class="btn-clear" onclick="clearSection('offers')" title="حذف المحتوى">🗑</button>
-          </div>
-        </div>
-        <div class="know-status" id="ks-offers">⬜ لا يوجد محتوى</div>
+        <div class="kstatus" id="ks-offers">⬜ لا يوجد محتوى</div>
       </div>
 
-      <!-- تعليمات خاصة -->
-      <div class="know-card" id="card-instructions">
-        <div class="know-card-head">
-          <div class="know-icon">📋</div>
-          <div>
-            <h3>تعليمات خاصة</h3>
-            <p>توجيهات وسياسات لعبدالله</p>
+      <div class="kcard">
+        <div class="kcard-head">
+          <div class="k-icon">📋</div>
+          <div><h3>تعليمات خاصة</h3><p>توجيهات وسياسات لعبدالله</p></div>
+        </div>
+        <div class="kcard-body">
+          <textarea class="kta" id="ta-instructions" placeholder="مثال:&#10;لا تذكر أسعار الكورسات إلا إذا سأل العميل مباشرة" oninput="updateChar('instructions')"></textarea>
+          <div class="kcc" id="cc-instructions">0 حرف</div>
+          <div class="kactions">
+            <button class="ksave" id="bs-instructions" onclick="saveSection('instructions')">💾 حفظ</button>
+            <button class="kclear" onclick="clearSection('instructions')">🗑</button>
           </div>
         </div>
-        <div class="know-body">
-          <textarea class="know-textarea" id="ta-instructions"
-            placeholder="مثال:
-لا تذكر أسعار الكورسات إلا إذا سأل العميل مباشرة
-أكد دائماً أن الكورسات تشمل شهادة معتمدة"
-            oninput="updateChar('instructions')"></textarea>
-          <div class="char-count" id="cc-instructions">0 حرف</div>
-          <div class="know-actions">
-            <button class="btn-save" id="bs-instructions" onclick="saveSection('instructions')">💾 حفظ</button>
-            <button class="btn-clear" onclick="clearSection('instructions')" title="حذف المحتوى">🗑</button>
-          </div>
-        </div>
-        <div class="know-status" id="ks-instructions">⬜ لا يوجد محتوى</div>
+        <div class="kstatus" id="ks-instructions">⬜ لا يوجد محتوى</div>
       </div>
 
-      <!-- أسئلة شائعة -->
-      <div class="know-card" id="card-faqs">
-        <div class="know-card-head">
-          <div class="know-icon">❓</div>
-          <div>
-            <h3>أسئلة شائعة</h3>
-            <p>ردود جاهزة على الأسئلة المتكررة</p>
+      <div class="kcard">
+        <div class="kcard-head">
+          <div class="k-icon">❓</div>
+          <div><h3>أسئلة شائعة</h3><p>ردود جاهزة على الأسئلة المتكررة</p></div>
+        </div>
+        <div class="kcard-body">
+          <textarea class="kta" id="ta-faqs" placeholder="مثال:&#10;س: هل يوجد دعم فني؟&#10;ج: نعم، متاح على واتساب 24/7" oninput="updateChar('faqs')"></textarea>
+          <div class="kcc" id="cc-faqs">0 حرف</div>
+          <div class="kactions">
+            <button class="ksave" id="bs-faqs" onclick="saveSection('faqs')">💾 حفظ</button>
+            <button class="kclear" onclick="clearSection('faqs')">🗑</button>
           </div>
         </div>
-        <div class="know-body">
-          <textarea class="know-textarea" id="ta-faqs"
-            placeholder="مثال:
-س: هل يوجد دعم فني؟
-ج: نعم، فريق الدعم متاح على واتساب 24/7
-
-س: هل الكورس بالعربي؟
-ج: نعم، جميع كورساتنا باللغة العربية"
-            oninput="updateChar('faqs')"></textarea>
-          <div class="char-count" id="cc-faqs">0 حرف</div>
-          <div class="know-actions">
-            <button class="btn-save" id="bs-faqs" onclick="saveSection('faqs')">💾 حفظ</button>
-            <button class="btn-clear" onclick="clearSection('faqs')" title="حذف المحتوى">🗑</button>
-          </div>
-        </div>
-        <div class="know-status" id="ks-faqs">⬜ لا يوجد محتوى</div>
+        <div class="kstatus" id="ks-faqs">⬜ لا يوجد محتوى</div>
       </div>
 
     </div>
   </div>
 
+  <!-- ── ربط واتساب (QR Tab) ── -->
+  <div class="tab-pane" id="pane-qr">
+    <div class="qr-section">
+      <div class="qr-card">
+        <h2>📱 ربط حساب واتساب</h2>
+        <p>افتح واتساب على هاتفك ثم اتبع الخطوات التالية لمسح رمز QR وربط البوت بحسابك</p>
+        <div class="qr-frame" id="qrFrame">
+          <span style="font-size:28px;opacity:.3">📱</span>
+          <span style="font-size:12px;color:var(--t3);margin-top:8px">اضغط تحديث للتحميل</span>
+        </div>
+        <div class="qr-timer" id="qrTimer"></div>
+        <br/>
+        <button class="qr-refresh-btn" onclick="refreshQR()">
+          <span id="qrRefreshIcon">🔄</span>
+          <span id="qrRefreshTxt">تحديث الكود</span>
+        </button>
+      </div>
+
+      <div class="qr-steps">
+        <h3>📋 خطوات الربط</h3>
+        <div class="qr-step">
+          <div class="step-num">1</div>
+          <div class="step-txt">افتح تطبيق واتساب على هاتفك</div>
+        </div>
+        <div class="qr-step">
+          <div class="step-num">2</div>
+          <div class="step-txt">اضغط على ⋮ (القائمة) → الأجهزة المرتبطة</div>
+        </div>
+        <div class="qr-step">
+          <div class="step-num">3</div>
+          <div class="step-txt">اضغط على "ربط جهاز"</div>
+        </div>
+        <div class="qr-step">
+          <div class="step-num">4</div>
+          <div class="step-txt">وجّه كاميرا هاتفك نحو رمز QR أعلاه</div>
+        </div>
+        <div class="qr-step">
+          <div class="step-num">5</div>
+          <div class="step-txt">انتظر لحظة — سيصبح البوت متصلاً تلقائياً ✅</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Toast -->
+<!-- ═══ QR MODAL ═══ -->
+<div class="qr-modal-bg" id="qrModalBg" onclick="closeQRModalBg(event)">
+  <div class="qr-modal">
+    <button class="close-btn" onclick="closeQRModal()">✕</button>
+    <h2>📱 ربط واتساب</h2>
+    <p>امسح الرمز من تطبيق واتساب<br/>الأجهزة المرتبطة ← ربط جهاز</p>
+    <div class="modal-qr-frame" id="modalQrFrame">
+      <span style="font-size:26px;opacity:.3">📱</span>
+    </div>
+    <div class="modal-timer" id="modalTimer">جاري التحميل...</div>
+    <button class="open-full-btn" onclick="switchTab('qr',document.querySelectorAll('.tab')[2]);loadQRTab();closeQRModal()">
+      🔍 فتح الصفحة الكاملة
+    </button>
+  </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
 <div class="toast" id="toast"></div>
 
 <script>
-  let allClients = [];
-  let selectedId  = null;
+  let allClients=[], selectedId=null;
+  let botConnected=false;
+  let qrAutoRefresh=null;
+  let qrModalInterval=null;
 
-  /* ══ Utils ══ */
-  function $(id) { return document.getElementById(id); }
+  const $=id=>document.getElementById(id);
 
-  function showToast(msg, duration = 2800) {
-    const t = $('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), duration);
+  function showToast(msg,dur=2800){
+    const t=$('toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),dur);
   }
 
-  function fmtTime(ts) {
-    if (!ts) return '';
-    const d = new Date(ts), diff = Date.now() - d;
-    if (diff < 60000)   return 'الآن';
-    if (diff < 3600000) return Math.floor(diff / 60000) + ' د';
-    if (diff < 86400000) return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+  function fmtTime(ts){
+    if(!ts)return'';
+    const d=new Date(ts),diff=Date.now()-d;
+    if(diff<60000)return'الآن';
+    if(diff<3600000)return Math.floor(diff/60000)+' د';
+    if(diff<86400000)return d.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
     return d.toLocaleDateString('ar');
   }
 
-  function initials(name) {
-    if (!name) return '?';
-    const p = name.trim().split(' ');
-    return p.length >= 2 ? p[0][0] + p[1][0] : name[0] || '?';
+  function initials(name){
+    if(!name)return'?';
+    const p=name.trim().split(' ');
+    return(p.length>=2?p[0][0]+p[1][0]:name[0]||'?').toUpperCase();
   }
 
-  /* ══ Tabs ══ */
-  function switchTab(id, btn) {
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-    $('pane-' + id).classList.add('active');
-    btn.classList.add('active');
+  /* ── Tabs ── */
+  function switchTab(id,btn){
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    $('pane-'+id).classList.add('active');
+    if(btn)btn.classList.add('active');
   }
 
-  /* ══ Stats ══ */
-  async function fetchStats() {
-    try {
-      const d = await fetch('/api/stats').then(r => r.json());
-      $('sTotal').textContent  = d.totalClients;
-      $('sActive').textContent = d.activeClients;
-      $('sPaused').textContent = d.pausedClients;
-      const dot = $('statusDot'), txt = $('statusText');
-      if (d.botConnected) {
-        dot.className = 'dot green';
-        txt.textContent = 'البوت متصل';
-      } else {
-        dot.className = 'dot red';
-        txt.textContent = 'البوت غير متصل';
+  /* ── Mobile chat toggle ── */
+  function showChat(){
+    const isMobile=window.innerWidth<=768;
+    if(isMobile){
+      $('clientsPane').style.display='none';
+      $('chatPane').style.display='flex';
+    }
+  }
+  function showClientsList(){
+    $('clientsPane').style.display='flex';
+    $('chatPane').style.display='none';
+    selectedId=null;
+  }
+
+  /* ── Stats ── */
+  async function fetchStats(){
+    try{
+      const d=await fetch('/api/stats').then(r=>r.json());
+      $('sTotal').textContent =d.totalClients;
+      $('sActive').textContent=d.activeClients;
+      $('sPaused').textContent=d.pausedClients;
+      botConnected=d.botConnected;
+      const dot=$('statusDot'),txt=$('statusText');
+      const qrBtn=$('qrHBtn');
+      if(d.botConnected){
+        dot.className='dot g';txt.textContent='البوت متصل';
+        qrBtn.className='qr-hbtn connected';qrBtn.innerHTML='<span>✅</span><span>متصل</span>';
+      }else{
+        dot.className='dot r';txt.textContent='غير متصل';
+        qrBtn.className='qr-hbtn';qrBtn.innerHTML='<span>📱</span><span>ربط واتساب</span>';
       }
-    } catch (e) {}
+    }catch(e){}
   }
 
-  /* ══ Clients ══ */
-  async function fetchClients() {
-    try {
-      allClients = await fetch('/api/clients').then(r => r.json());
+  /* ── Clients ── */
+  async function fetchClients(){
+    try{
+      allClients=await fetch('/api/clients').then(r=>r.json());
       renderClients(allClients);
-    } catch (e) {}
+    }catch(e){}
   }
 
-  function filterClients() {
-    const q = $('searchInput').value.toLowerCase();
-    renderClients(q ? allClients.filter(c =>
-      c.name.toLowerCase().includes(q) || (c.lastMessage || '').toLowerCase().includes(q)
-    ) : allClients);
+  function filterClients(){
+    const q=$('searchInput').value.toLowerCase();
+    renderClients(q?allClients.filter(c=>c.name.toLowerCase().includes(q)||(c.lastMessage||'').toLowerCase().includes(q)):allClients);
   }
 
-  function renderClients(list) {
-    const el = $('clientsList');
-    if (!list || !list.length) {
-      el.innerHTML = `<div class="empty-box" style="padding:40px 0"><div class="eicon">💬</div><p>لا توجد محادثات بعد</p></div>`;
+  function renderClients(list){
+    const el=$('clientsList');
+    const cnt=$('clientCount');
+    if(cnt)cnt.textContent=list.length?`(${list.length})`:'';
+    if(!list||!list.length){
+      el.innerHTML='<div class="empty-box"><div class="ei">💬</div><p>لا توجد محادثات بعد</p></div>';
       return;
     }
-    el.innerHTML = list.map(c => {
-      const enc   = encodeURIComponent(c.userId);
-      const badge = c.paused ? 'blue' : 'green';
-      const bcls  = c.paused ? 'resume' : 'stop';
-      const btxt  = c.paused ? '▶ تشغيل' : '⏸ إيقاف';
-      const sel   = selectedId === c.userId ? 'sel' : '';
-      return `
-        <div class="client-row ${sel}" onclick="selectClient('${enc}','${c.name.replace(/'/g,"\\'")}',${c.paused})">
-          <div class="av-wrap">
-            <div class="av">${initials(c.name)}</div>
-            <div class="badge ${badge}"></div>
-          </div>
-          <div class="client-info">
-            <div class="ci-name">${c.name}</div>
-            <div class="ci-preview">${c.lastMessage || ''}</div>
-          </div>
-          <div class="client-meta">
-            <span class="ci-time">${fmtTime(c.lastTime)}</span>
-            <button class="tbtn ${bcls}"
-              onclick="event.stopPropagation();togglePause('${enc}')">${btxt}</button>
-          </div>
-        </div>`;
+    el.innerHTML=list.map(c=>{
+      const enc=encodeURIComponent(c.userId);
+      const badge=c.paused?'b':'g';
+      const bcls=c.paused?'resume':'stop';
+      const btxt=c.paused?'▶ تشغيل':'⏸ إيقاف';
+      const sel=selectedId===c.userId?'sel':'';
+      return`<div class="cr ${sel}" onclick="selectClient('${enc}','${c.name.replace(/'/g,"\\'")}',${c.paused})">
+        <div class="av-w">
+          <div class="av">${initials(c.name)}</div>
+          <div class="st-badge ${badge}"></div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="ci-name">${c.name}</div>
+          <div class="ci-prev">${c.lastMessage||''}</div>
+        </div>
+        <div class="ci-meta">
+          <span class="ci-time">${fmtTime(c.lastTime)}</span>
+          <button class="tbtn ${bcls}" onclick="event.stopPropagation();togglePause('${enc}')">${btxt}</button>
+        </div>
+      </div>`;
     }).join('');
   }
 
-  async function selectClient(enc, name, paused) {
-    selectedId = decodeURIComponent(enc);
-    const head = $('chatHead');
-    head.style.display = 'flex';
-    $('chatAv').textContent  = initials(name);
-    $('chatName').textContent = name;
-    $('chatSub').textContent  = paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
+  async function selectClient(enc,name,paused){
+    selectedId=decodeURIComponent(enc);
+    $('chatHead').style.display='flex';
+    $('chatAv').textContent=initials(name);
+    $('chatName').textContent=name;
+    $('chatSub').textContent=paused?'🔵 فريق الدعم يتابع':'🟢 البوت نشط';
+    showChat();
     await loadMsgs(selectedId);
     renderClients(allClients);
   }
 
-  async function loadMsgs(userId) {
-    try {
-      const msgs = await fetch('/api/clients/' + encodeURIComponent(userId) + '/messages').then(r => r.json());
-      const el = $('chatMsgs');
-      if (!msgs || !msgs.length) {
-        el.innerHTML = `<div class="empty-box"><div class="eicon">💬</div><p>لا توجد رسائل</p></div>`;
+  async function loadMsgs(userId){
+    try{
+      const msgs=await fetch('/api/clients/'+encodeURIComponent(userId)+'/messages').then(r=>r.json());
+      const el=$('chatMsgs');
+      if(!msgs||!msgs.length){
+        el.innerHTML='<div class="empty-box"><div class="ei">💬</div><p>لا توجد رسائل</p></div>';
         return;
       }
-      el.innerHTML = msgs.map(m => {
-        const cls = m.fromBot ? 'bot' : 'usr';
-        const lbl = m.fromBot ? '🤖 عبدالله' : '👤 العميل';
-        return `<div class="bubble ${cls}">${m.text}<span class="btime">${lbl} · ${fmtTime(m.time)}</span></div>`;
+      el.innerHTML=msgs.map(m=>{
+        const cls=m.fromBot?'bot':'usr';
+        const lbl=m.fromBot?'🤖 عبدالله':'👤 العميل';
+        return`<div class="bubble ${cls}">${m.text}<span class="btime">${lbl} · ${fmtTime(m.time)}</span></div>`;
       }).join('');
-      el.scrollTop = el.scrollHeight;
-    } catch (e) {}
+      el.scrollTop=el.scrollHeight;
+    }catch(e){}
   }
 
-  async function togglePause(enc) {
-    try {
-      const d = await fetch('/api/clients/' + enc + '/toggle-pause', { method: 'POST' }).then(r => r.json());
-      showToast(d.paused ? '🔵 تم إيقاف البوت عن هذا العميل' : '🟢 تم تشغيل البوت للعميل');
-      if (selectedId === decodeURIComponent(enc)) {
-        $('chatSub').textContent = d.paused ? '🔵 فريق الدعم يتابع' : '🟢 البوت نشط';
+  async function togglePause(enc){
+    try{
+      const d=await fetch('/api/clients/'+enc+'/toggle-pause',{method:'POST'}).then(r=>r.json());
+      showToast(d.paused?'🔵 تم إيقاف البوت عن هذا العميل':'🟢 تم تشغيل البوت للعميل');
+      if(selectedId===decodeURIComponent(enc)){
+        $('chatSub').textContent=d.paused?'🔵 فريق الدعم يتابع':'🟢 البوت نشط';
       }
-      await fetchClients();
-      await fetchStats();
-    } catch (e) { showToast('حدث خطأ، حاول مرة ثانية'); }
+      await fetchClients();await fetchStats();
+    }catch(e){showToast('حدث خطأ، حاول مرة ثانية');}
   }
 
-  /* ══ Knowledge ══ */
-  function updateChar(sec) {
-    const len = $('ta-' + sec).value.length;
-    $('cc-' + sec).textContent = len.toLocaleString('ar') + ' حرف';
+  /* ── Knowledge ── */
+  function updateChar(sec){
+    const len=$('ta-'+sec).value.length;
+    $('cc-'+sec).textContent=len.toLocaleString('ar')+' حرف';
   }
 
-  function updateStatus(sec, text) {
-    const el = $('ks-' + sec);
-    if (text && text.trim()) {
-      el.className = 'know-status has-data';
-      el.textContent = '✅ يحتوي على بيانات (' + text.trim().split('\n').length + ' سطر)';
-    } else {
-      el.className = 'know-status';
-      el.textContent = '⬜ لا يوجد محتوى';
+  function updateStatus(sec,text){
+    const el=$('ks-'+sec);
+    if(text&&text.trim()){el.className='kstatus has';el.textContent='✅ يحتوي على بيانات ('+text.trim().split('\n').length+' سطر)';}
+    else{el.className='kstatus';el.textContent='⬜ لا يوجد محتوى';}
+  }
+
+  async function loadKnowledge(){
+    try{
+      const d=await fetch('/api/knowledge').then(r=>r.json());
+      ['offers','instructions','faqs'].forEach(sec=>{
+        const val=d[sec]||'';
+        $('ta-'+sec).value=val;updateChar(sec);updateStatus(sec,val);
+      });
+    }catch(e){}
+  }
+
+  async function saveSection(sec){
+    const text=$('ta-'+sec).value;
+    const btn=$('bs-'+sec);
+    try{
+      await fetch('/api/knowledge/'+sec,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+      btn.textContent='✅ تم الحفظ';btn.className='ksave saved';
+      updateStatus(sec,text);showToast('✅ تم الحفظ — البوت يعرف المعلومات الجديدة');
+      setTimeout(()=>{btn.textContent='💾 حفظ';btn.className='ksave';},2400);
+    }catch(e){showToast('خطأ في الحفظ');}
+  }
+
+  async function clearSection(sec){
+    if(!confirm('هل تريد حذف محتوى هذا القسم؟'))return;
+    try{
+      await fetch('/api/knowledge/'+sec,{method:'DELETE'});
+      $('ta-'+sec).value='';updateChar(sec);updateStatus(sec,'');showToast('🗑 تم حذف المحتوى');
+    }catch(e){showToast('خطأ في الحذف');}
+  }
+
+  /* ── QR ── */
+  let qrCountdown=0;
+  let qrCountInterval=null;
+
+  async function fetchQR(){
+    try{
+      const d=await fetch('/api/qr-status').then(r=>r.json());
+      return d;
+    }catch(e){return{hasQR:false,dataUrl:null};}
+  }
+
+  async function refreshQR(){
+    const frame=$('qrFrame');
+    const icon=$('qrRefreshIcon');const txt=$('qrRefreshTxt');
+    icon.innerHTML='<span class="spin" style="border-top-color:#0a0b0f"></span>';
+    txt.textContent='جاري التحميل...';
+    clearInterval(qrCountInterval);
+    const d=await fetchQR();
+    if(d.dataUrl){
+      frame.innerHTML=`<img src="${d.dataUrl}" alt="QR Code"/>`;
+      frame.className='qr-frame';
+      $('qrTimer').textContent='⏳ الكود صالح لمدة دقيقة — يُحدَّث تلقائياً';
+      startQRCountdown($('qrTimer'),60);
+    }else if(botConnected){
+      frame.className='qr-frame connected';
+      frame.innerHTML='<div class="qr-conn-icon">✅</div><div style="font-size:14px;font-weight:700;color:var(--green)">البوت متصل</div><div style="font-size:12px;color:var(--t2);margin-top:4px">لا حاجة لمسح QR</div>';
+      $('qrTimer').textContent='';
+    }else{
+      frame.className='qr-frame loading';
+      frame.innerHTML='<span style="font-size:28px;opacity:.3">⏳</span><span style="font-size:12px;color:var(--t3)">لا يوجد رمز حالياً — البوت يحاول الاتصال</span>';
+      $('qrTimer').textContent='سيظهر الرمز خلال لحظات...';
+    }
+    icon.textContent='🔄';txt.textContent='تحديث الكود';
+  }
+
+  function startQRCountdown(el,seconds){
+    clearInterval(qrCountInterval);
+    let s=seconds;
+    qrCountInterval=setInterval(()=>{
+      s--;
+      if(s<=0){clearInterval(qrCountInterval);el.textContent='⏰ انتهت صلاحية الرمز — اضغط تحديث';}
+      else{el.textContent=`⏳ الكود صالح لـ ${s} ثانية`;}
+    },1000);
+  }
+
+  function loadQRTab(){
+    clearInterval(qrAutoRefresh);
+    refreshQR();
+    qrAutoRefresh=setInterval(refreshQR,20000);
+  }
+
+  /* ── QR Modal ── */
+  async function openQRModal(){
+    $('qrModalBg').classList.add('open');
+    await refreshModalQR();
+    clearInterval(qrModalInterval);
+    qrModalInterval=setInterval(refreshModalQR,15000);
+  }
+
+  function closeQRModal(){
+    $('qrModalBg').classList.remove('open');
+    clearInterval(qrModalInterval);
+  }
+
+  function closeQRModalBg(e){
+    if(e.target===$('qrModalBg'))closeQRModal();
+  }
+
+  async function refreshModalQR(){
+    const frame=$('modalQrFrame');
+    const timer=$('modalTimer');
+    const d=await fetchQR();
+    if(d.dataUrl){
+      frame.innerHTML=`<img src="${d.dataUrl}" alt="QR"/>`;
+      timer.textContent='⏳ امسح الرمز من واتساب';
+    }else if(botConnected){
+      frame.innerHTML='<div style="font-size:40px">✅</div><div style="font-size:13px;color:var(--green);font-weight:700;margin-top:6px">البوت متصل</div>';
+      timer.textContent='لا حاجة لمسح QR';
+      setTimeout(closeQRModal,2500);
+    }else{
+      frame.innerHTML='<span style="font-size:32px;opacity:.25">⏳</span><span style="font-size:12px;color:var(--t3);margin-top:8px;display:block">لا يوجد رمز حالياً</span>';
+      timer.textContent='البوت يحاول الاتصال...';
     }
   }
 
-  async function loadKnowledge() {
-    try {
-      const d = await fetch('/api/knowledge').then(r => r.json());
-      ['offers','instructions','faqs'].forEach(sec => {
-        const val = d[sec] || '';
-        $('ta-' + sec).value = val;
-        updateChar(sec);
-        updateStatus(sec, val);
-      });
-    } catch (e) {}
-  }
-
-  async function saveSection(sec) {
-    const text = $('ta-' + sec).value;
-    const btn  = $('bs-' + sec);
-    try {
-      await fetch('/api/knowledge/' + sec, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      btn.textContent = '✅ تم الحفظ';
-      btn.className   = 'btn-save saved';
-      updateStatus(sec, text);
-      showToast('✅ تم الحفظ — البوت يعرف المعلومات الجديدة');
-      setTimeout(() => {
-        btn.textContent = '💾 حفظ';
-        btn.className   = 'btn-save';
-      }, 2400);
-    } catch (e) { showToast('خطأ في الحفظ، حاول مرة ثانية'); }
-  }
-
-  async function clearSection(sec) {
-    if (!confirm('هل تريد حذف محتوى هذا القسم؟')) return;
-    try {
-      await fetch('/api/knowledge/' + sec, { method: 'DELETE' });
-      $('ta-' + sec).value = '';
-      updateChar(sec);
-      updateStatus(sec, '');
-      showToast('🗑 تم حذف المحتوى');
-    } catch (e) { showToast('خطأ في الحذف'); }
-  }
-
-  /* ══ Refresh loop ══ */
-  async function refresh() {
-    await fetchStats();
-    await fetchClients();
-    if (selectedId) await loadMsgs(selectedId);
+  /* ── Refresh loop ── */
+  async function refresh(){
+    await fetchStats();await fetchClients();
+    if(selectedId)await loadMsgs(selectedId);
   }
 
   loadKnowledge();
   refresh();
-  setInterval(refresh, 4000);
+  setInterval(refresh,5000);
 </script>
 </body>
 </html>

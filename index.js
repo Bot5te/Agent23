@@ -47,6 +47,7 @@ const AUTH_DIR = "./lafsh_auth";
 const groq = new Groq({ apiKey: GROQ_API_KEY });
 
 const conversationHistory = new Map();
+const lidToRealPhone = new Map();
 let coursesData = [];
 const _contextCache = {};
 
@@ -74,10 +75,16 @@ function loadContacts() {
   return [];
 }
 
+function getRealPhone(jid) {
+  if (!jid) return "";
+  if (!jid.endsWith("@lid")) return "+" + jid.split("@")[0];
+  const realNum = lidToRealPhone.get(jid);
+  return realNum ? "+" + realNum : "+" + jid.split("@")[0];
+}
+
 function upsertContact(userId, name) {
-  const jid      = userId;                          // الـ JID الكامل كـ "966501234567@s.whatsapp.net" أو "265399014846598@lid"
-  const rawNum   = userId.split("@")[0];            // الرقم الخام بدون لاحقة
-  const phone    = "+" + rawNum;                    // رقم الهاتف مع +
+  const jid      = userId;
+  const phone    = getRealPhone(jid);
   const contacts = loadContacts();
   const idx      = contacts.findIndex(c => c.jid === jid);
   const now      = Date.now();
@@ -533,6 +540,10 @@ app.get("/qr", (req, res) => {
   }
 });
 
+app.get("/api/qr-status", (req, res) => {
+  res.json({ hasQR: !!global.qrCodeUrl, dataUrl: global.qrCodeUrl || null });
+});
+
 // ===== API لوحة التحكم =====
 
 // قائمة العملاء مرتبة بالأحدث
@@ -895,6 +906,29 @@ async function connectToWhatsApp() {
     sock.ev.on("creds.update", saveCreds);
     sock.ev.on("connection.update", handleConnectionUpdate);
     sock.ev.on("messages.upsert", handleMessagesUpsert);
+
+    // ربط LID بالرقم الحقيقي عبر sender_pn
+    sock.ws.on("CB:message", (node) => {
+      try {
+        const attrs = node.attrs || {};
+        if (attrs.from?.endsWith("@lid") && attrs.sender_pn?.endsWith("@s.whatsapp.net")) {
+          const realNum = attrs.sender_pn.split("@")[0].replace(/\s+/g, "");
+          if (!lidToRealPhone.has(attrs.from) || lidToRealPhone.get(attrs.from) !== realNum) {
+            lidToRealPhone.set(attrs.from, realNum);
+            console.log(`✅ LID→رقم: ${attrs.from} = +${realNum}`);
+            // تحديث جهة الاتصال الموجودة فوراً إن كانت موجودة
+            try {
+              const contacts = loadContacts();
+              const idx = contacts.findIndex(c => c.jid === attrs.from);
+              if (idx >= 0) {
+                contacts[idx].phone = "+" + realNum;
+                fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
+              }
+            } catch (_) {}
+          }
+        }
+      } catch (_) {}
+    });
   } catch (e) {
     console.error("خطأ في connectToWhatsApp:", e);
     setTimeout(connectToWhatsApp, 10000);
