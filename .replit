@@ -1,12 +1,12 @@
 entrypoint = "index.js"
-modules = ["nodejs-22"]
+modules = ["web", "nodejs-20"]
 hidden = [".config", "package-lock.json"]
 
 [gitHubImport]
 requiredFiles = [".replit", "replit.nix", "package.json", "package-lock.json"]
 
 [nix]
-channel = "stable-24_11"
+channel = "stable-25_05"
 
 [deployment]
 run = ["node", "index.js"]
@@ -15,6 +15,7 @@ ignorePorts = false
 
 [agent]
 expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
 
 [workflows]
 runButton = "Project"
