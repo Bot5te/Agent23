@@ -88,8 +88,8 @@ function upsertContact(userId, name) {
   const now      = Date.now();
   if (idx >= 0) {
     contacts[idx].lastContact = now;
-    contacts[idx].phone = phone;                    // تحديث الرقم إن تغيّر
-    if (name && name !== rawNum) contacts[idx].name = name;
+    contacts[idx].phone = phone;
+    if (name && name !== phone) contacts[idx].name = name;
   } else {
     contacts.push({ jid, phone, name: name || phone, firstContact: now, lastContact: now });
   }
@@ -941,10 +941,11 @@ async function handleConnectionUpdate(update) {
     reconnectAttempts = 0;
     global.qrCodeUrl = null;
     global.botConnected = true;
+    global.botOwnJid = sock?.user?.id || null;
     try {
       await sock.sendPresenceUpdate("unavailable");
     } catch (e) {}
-    console.log("🟢 البوت متصل بواتساب");
+    console.log("🟢 البوت متصل بواتساب" + (global.botOwnJid ? ` (${global.botOwnJid})` : ""));
   }
 
   if (connection === "close") {
@@ -1096,8 +1097,9 @@ async function connectWithPairingCode(phone) {
         global.pairingConnecting = false;
         global.qrCodeUrl = null;
         global.botConnected = true;
+        global.botOwnJid = sock?.user?.id || null;
         try { await sock.sendPresenceUpdate("unavailable"); } catch (_) {}
-        console.log("🟢 البوت متصل بواتساب (pairing code)");
+        console.log("🟢 البوت متصل بواتساب (pairing code)" + (global.botOwnJid ? ` (${global.botOwnJid})` : ""));
       }
 
       if (connection === "close") {
@@ -1208,6 +1210,12 @@ async function handleMessagesUpsert({ messages }) {
         console.log(`  [ESCALATE] تم إيقاف البوت عن: ${userId}`);
         await sendText(sender, ESCALATION_MESSAGE);
         updateClientData(userId, pushName, ESCALATION_MESSAGE, true);
+        // تنبيه المالك على رقم البوت
+        if (global.botOwnJid) {
+          const phone = getRealPhone(userId);
+          const notif = `🔔 *تنبيه تصعيد*\n👤 العميل: ${pushName || "غير معروف"}\n📞 الرقم: ${phone}\n💬 آخر رسالة: ${userText.slice(0, 120)}`;
+          try { await sendText(global.botOwnJid, notif); } catch (_) {}
+        }
         return;
       }
 
@@ -1268,6 +1276,12 @@ async function handleMessagesUpsert({ messages }) {
       console.log(`  [ESCALATE] تم إيقاف البوت عن: ${userId}`);
       await sendText(sender, ESCALATION_MESSAGE);
       updateClientData(userId, pushName, ESCALATION_MESSAGE, true);
+      // تنبيه المالك على رقم البوت
+      if (global.botOwnJid) {
+        const phone = getRealPhone(userId);
+        const notif = `🔔 *تنبيه تصعيد*\n👤 العميل: ${pushName || "غير معروف"}\n📞 الرقم: ${phone}\n💬 آخر رسالة: ${text.slice(0, 120)}`;
+        try { await sendText(global.botOwnJid, notif); } catch (_) {}
+      }
       return;
     }
 
