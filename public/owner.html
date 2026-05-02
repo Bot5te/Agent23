@@ -35,9 +35,13 @@
     }
     .logo{display:flex;align-items:center;gap:13px}
     .logo-mark{
-      width:40px;height:40px;background:var(--gold);border-radius:11px;
-      display:flex;align-items:center;justify-content:center;font-size:21px;
-      box-shadow:0 2px 16px var(--gold-g);flex-shrink:0;
+      width:42px;height:42px;
+      background:linear-gradient(135deg,var(--gold) 0%,#d4a017 100%);
+      border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:16px;font-weight:900;color:#0a0b0f;
+      box-shadow:0 0 0 1px rgba(245,197,24,.3),0 4px 20px rgba(245,197,24,.2);
+      flex-shrink:0;font-family:'Cairo',sans-serif;letter-spacing:-1px;
     }
     .logo-text strong{display:block;font-size:15px;font-weight:800;letter-spacing:.2px}
     .logo-text span{font-size:11px;color:var(--t3);margin-top:1px;display:block}
@@ -402,7 +406,7 @@
 
 <header>
   <div class="logo">
-    <div class="logo-mark">👑</div>
+    <div class="logo-mark">إف</div>
     <div class="logo-text">
       <strong>لوحة المالك — إفادة</strong>
       <span>إدارة متقدمة لبوت واتساب</span>
@@ -531,7 +535,6 @@
   <div class="tab-pane" id="pane-contacts">
     <div class="ct-bar">
       <input class="ct-search" type="text" id="ctSearch" placeholder="🔍 بحث بالاسم أو الرقم..." oninput="filterTable()"/>
-      <button class="dl-btn" onclick="downloadContacts()">⬇️ تحميل JSON</button>
     </div>
     <div class="ct-wrap">
       <table class="ct-table">
@@ -542,10 +545,13 @@
             <th>رقم الهاتف</th>
             <th>أول تواصل</th>
             <th>آخر تواصل</th>
+            <th style="width:130px;text-align:center">
+              <button class="dl-btn" onclick="downloadContacts()" style="padding:5px 12px;font-size:11.5px;box-shadow:none">⬇️ تحميل JSON</button>
+            </th>
           </tr>
         </thead>
         <tbody id="ctBody">
-          <tr><td colspan="5" class="ct-empty">جاري التحميل...</td></tr>
+          <tr><td colspan="6" class="ct-empty">افتح هذا التاب لتحميل البيانات</td></tr>
         </tbody>
       </table>
     </div>
@@ -703,6 +709,8 @@
     return(p.length>=2?p[0][0]+p[1][0]:name[0]||'?').toUpperCase();
   }
 
+  let contactsLoaded = false;
+
   function switchTab(id,btn){
     document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
@@ -710,6 +718,14 @@
     btn.classList.add('active');
     if(id==='settings'){
       refreshSettingsQR();
+    }
+    if(id==='contacts' && !contactsLoaded){
+      contactsLoaded = true;
+      fetchContacts();
+    }
+    if(id==='broadcast' && !contactsLoaded){
+      contactsLoaded = true;
+      fetchContacts();
     }
   }
 
@@ -818,7 +834,7 @@
   function renderTable(list){
     const el=$('ctBody');
     if(!list.length){
-      el.innerHTML='<tr><td colspan="5" class="ct-empty">لا توجد جهات اتصال بعد</td></tr>';
+      el.innerHTML='<tr><td colspan="6" class="ct-empty">لا توجد جهات اتصال بعد</td></tr>';
       return;
     }
     el.innerHTML=list.map((c,i)=>{
@@ -827,12 +843,10 @@
       return`<tr>
         <td><div class="row-num">${i+1}</div></td>
         <td><strong>${c.name}</strong></td>
-        <td>
-          <span class="num-badge">${c.phone}</span>
-          ${lidBadge}
-        </td>
+        <td><span class="num-badge">${c.phone}</span>${lidBadge}</td>
         <td style="color:var(--t2);font-size:12px">${fmtDate(c.firstContact)}</td>
         <td style="color:var(--t2);font-size:12px">${fmtDate(c.lastContact)}</td>
+        <td></td>
       </tr>`;
     }).join('');
   }
@@ -1116,8 +1130,9 @@
 
   /* ── INIT ── */
   fetchStats();
-  fetchContacts();
   loadLinks();
+  fetchContacts();
+  contactsLoaded = true;
   setInterval(fetchStats, 8000);
 </script>
 </body>
