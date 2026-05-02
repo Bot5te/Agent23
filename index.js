@@ -542,7 +542,19 @@ app.get("/api/qr-status", (req, res) => {
   res.json({ hasQR: !!global.qrCodeUrl, dataUrl: global.qrCodeUrl || null });
 });
 
-// طلب كود الربط — يتحقق من الحالة وينتظر النتيجة
+// تشغيل الاتصال بوضع QR (بدون مصادقة مسبقة)
+app.post("/api/owner/start-qr", (req, res) => {
+  const { ownerKey } = req.body;
+  const cfg = loadConfig();
+  if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
+  if (global.botConnected) return res.status(400).json({ error: "البوت متصل بالفعل" });
+  if (global.pairingConnecting) return res.status(400).json({ error: "جاري الاتصال بالفعل" });
+  global.qrCodeUrl = null;
+  connectToWhatsApp();
+  res.json({ ok: true });
+});
+
+// طلب كود الربط — يُشغّل الاتصال بنفسه ثم يجلب الكود
 app.post("/api/pairing-code", async (req, res) => {
   const { ownerKey, phone } = req.body;
   const cfg = loadConfig();
@@ -552,50 +564,53 @@ app.post("/api/pairing-code", async (req, res) => {
   const cleanPhone = phone.replace(/\D/g, "");
   if (cleanPhone.length < 7) return res.status(400).json({ error: "رقم الهاتف غير صحيح" });
 
-  // إذا البوت متصل بالفعل → يجب فصله أولاً
   if (global.botConnected) {
-    return res.status(400).json({
-      needDisconnect: true,
-      error: "البوت متصل حالياً — يجب فصله أولاً"
-    });
+    return res.status(400).json({ needDisconnect: true, error: "البوت متصل حالياً — يجب فصله أولاً" });
   }
 
-  // إذا كان الكود جاهزاً مسبقاً → أرجعه فوراً
+  // إذا الكود جاهز مسبقاً أرجعه فوراً
   if (global.pairingCodeResult) {
     const r = global.pairingCodeResult;
     global.pairingCodeResult = null;
+    global.pairingConnecting = false;
     if (r.error) return res.status(500).json({ error: r.error });
     return res.json({ code: r.code });
   }
 
-  // انتظر حتى 80 ثانية للحصول على النتيجة
-  const deadline = Date.now() + 80000;
+  // شغّل الاتصال إن لم يكن شغّالاً
+  if (!global.pairingConnecting) {
+    global.pairingConnecting = true;
+    global.pairingCodeResult = null;
+    connectWithPairingCode(cleanPhone);
+  }
+
+  // انتظر حتى 35 ثانية للحصول على الكود
+  const deadline = Date.now() + 35000;
   while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, 500));
     if (global.pairingCodeResult) {
       const r = global.pairingCodeResult;
       global.pairingCodeResult = null;
+      global.pairingConnecting = false;
       if (r.error) return res.status(500).json({ error: r.error });
       return res.json({ code: r.code });
     }
-    await new Promise(r => setTimeout(r, 500));
   }
-  res.status(504).json({ error: "انتهت المهلة — لم تصل نتيجة خلال 80 ثانية" });
+  global.pairingConnecting = false;
+  res.status(504).json({ error: "انتهت المهلة — لم يصل الكود، تأكد من الرقم وحاول مجدداً" });
 });
 
-// فصل البوت وبدء الاتصال بوضع كود الربط
+// فصل البوت فقط (بدون بدء اتصال جديد)
 app.post("/api/owner/disconnect", async (req, res) => {
-  const { ownerKey, phone } = req.body;
+  const { ownerKey } = req.body;
   const cfg = loadConfig();
   if (ownerKey !== cfg.ownerPassword) return res.status(403).json({ error: "غير مصرح" });
 
-  const cleanPhone = phone ? phone.replace(/\D/g, "") : "";
-  if (!cleanPhone || cleanPhone.length < 7) return res.status(400).json({ error: "رقم الهاتف مطلوب" });
-
   global.pairingCodeResult = null;
+  global.pairingConnecting = false;
   global.botConnected = false;
   global.qrCodeUrl = null;
 
-  // أوقف الـ socket الحالي
   try {
     if (sock) {
       sock.ev.removeAllListeners();
@@ -605,15 +620,11 @@ app.post("/api/owner/disconnect", async (req, res) => {
   } catch (e) {}
   sock = null;
 
-  // احذف ملفات المصادقة
   try {
     if (fs.existsSync(AUTH_DIR)) fs.rmSync(AUTH_DIR, { recursive: true, force: true });
   } catch (e) {}
 
-  // ابدأ الاتصال بوضع كود الربط بعد ثانيتين
-  setTimeout(() => connectWithPairingCode(cleanPhone), 2000);
-
-  res.json({ ok: true, message: "جاري الفصل وطلب كود الربط..." });
+  res.json({ ok: true, message: "تم فصل البوت وحذف بيانات الاتصال" });
 });
 
 // ===== API لوحة التحكم =====
@@ -951,6 +962,31 @@ async function handleConnectionUpdate(update) {
   }
 }
 
+// ربط معالج LID للـ socket الحالي
+function registerLidHandler() {
+  if (!sock?.ws) return;
+  sock.ws.on("CB:message", (node) => {
+    try {
+      const attrs = node.attrs || {};
+      if (attrs.from?.endsWith("@lid") && attrs.sender_pn?.endsWith("@s.whatsapp.net")) {
+        const realNum = attrs.sender_pn.split("@")[0].replace(/\s+/g, "");
+        if (!lidToRealPhone.has(attrs.from) || lidToRealPhone.get(attrs.from) !== realNum) {
+          lidToRealPhone.set(attrs.from, realNum);
+          console.log(`✅ LID→رقم: ${attrs.from} = +${realNum}`);
+          try {
+            const contacts = loadContacts();
+            const idx = contacts.findIndex(c => c.jid === attrs.from);
+            if (idx >= 0) {
+              contacts[idx].phone = "+" + realNum;
+              fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+  });
+}
+
 async function connectToWhatsApp() {
   try {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
@@ -978,36 +1014,14 @@ async function connectToWhatsApp() {
     sock.ev.on("creds.update", saveCreds);
     sock.ev.on("connection.update", handleConnectionUpdate);
     sock.ev.on("messages.upsert", handleMessagesUpsert);
-
-    // ربط LID بالرقم الحقيقي عبر sender_pn
-    sock.ws.on("CB:message", (node) => {
-      try {
-        const attrs = node.attrs || {};
-        if (attrs.from?.endsWith("@lid") && attrs.sender_pn?.endsWith("@s.whatsapp.net")) {
-          const realNum = attrs.sender_pn.split("@")[0].replace(/\s+/g, "");
-          if (!lidToRealPhone.has(attrs.from) || lidToRealPhone.get(attrs.from) !== realNum) {
-            lidToRealPhone.set(attrs.from, realNum);
-            console.log(`✅ LID→رقم: ${attrs.from} = +${realNum}`);
-            // تحديث جهة الاتصال الموجودة فوراً إن كانت موجودة
-            try {
-              const contacts = loadContacts();
-              const idx = contacts.findIndex(c => c.jid === attrs.from);
-              if (idx >= 0) {
-                contacts[idx].phone = "+" + realNum;
-                fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
-              }
-            } catch (_) {}
-          }
-        }
-      } catch (_) {}
-    });
+    registerLidHandler();
   } catch (e) {
     console.error("خطأ في connectToWhatsApp:", e);
     setTimeout(connectToWhatsApp, 10000);
   }
 }
 
-// اتصال خاص بوضع كود الربط — يطلب الكود عند استقبال حدث QR (أي أن الـ socket جاهز)
+// اتصال خاص بوضع كود الربط
 async function connectWithPairingCode(phone) {
   console.log(`📲 بدء الاتصال بوضع كود الربط للرقم: ${phone}`);
   try {
@@ -1036,32 +1050,60 @@ async function connectWithPairingCode(phone) {
     sock.ev.on("creds.update", saveCreds);
     sock.ev.on("messages.upsert", handleMessagesUpsert);
 
+    // ربط LID
+    registerLidHandler();
+
     let pairingCodeRequested = false;
+    let pairingSucceeded = false;
 
     sock.ev.on("connection.update", async (update) => {
-      const { qr } = update;
+      const { connection, lastDisconnect, qr } = update;
 
-      // عند ظهور QR يعني الـ socket متصل بخوادم واتساب وجاهز — نطلب الكود بدلاً من QR
-      if (qr && !pairingCodeRequested && !global.botConnected) {
+      // عند ظهور QR = الـ socket اتصل بخوادم واتساب → نطلب الكود
+      if (qr && !pairingCodeRequested) {
         pairingCodeRequested = true;
+        // احفظ QR للعرض في /qr
+        qrcode.toDataURL(qr, (err, url) => { if (!err) global.qrCodeUrl = url; });
         try {
           const code = await sock.requestPairingCode(phone);
           global.pairingCodeResult = { code, ts: Date.now() };
-          console.log(`✅ كود الربط للرقم ${phone}: ${code}`);
+          console.log(`✅ كود الربط: ${code}`);
         } catch (e) {
           console.error("❌ خطأ في طلب كود الربط:", e?.message);
-          global.pairingCodeResult = { error: e?.message || "فشل طلب الكود", ts: Date.now() };
-          setTimeout(connectToWhatsApp, 3000);
+          global.pairingCodeResult = { error: e?.message || "فشل طلب الكود" };
+          global.pairingConnecting = false;
         }
       }
 
-      // معالجة بقية أحداث الاتصال بشكل طبيعي
-      await handleConnectionUpdate(update);
+      if (connection === "open") {
+        pairingSucceeded = true;
+        global.pairingConnecting = false;
+        global.qrCodeUrl = null;
+        global.botConnected = true;
+        try { await sock.sendPresenceUpdate("unavailable"); } catch (e) {}
+        console.log("🟢 البوت متصل بواتساب (pairing code)");
+      }
+
+      if (connection === "close") {
+        global.botConnected = false;
+        const statusCode = lastDisconnect?.error?.output?.statusCode;
+        if (statusCode === 401 && fs.existsSync(AUTH_DIR)) {
+          console.log("⚠️ تم تسجيل الخروج — حذف بيانات المصادقة");
+          fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+        }
+        // إذا نجح الربط سابقاً → أعد الاتصال الطبيعي
+        if (pairingSucceeded && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts++;
+          console.log(`🔄 إعادة الاتصال #${reconnectAttempts} خلال 15 ثانية...`);
+          setTimeout(connectToWhatsApp, 15000);
+        }
+        // إذا لم ينجح الربط بعد → لا تعيد الاتصال تلقائياً
+      }
     });
   } catch (e) {
     console.error("❌ خطأ في connectWithPairingCode:", e?.message);
-    global.pairingCodeResult = { error: e?.message || "فشل طلب الكود", ts: Date.now() };
-    setTimeout(connectToWhatsApp, 3000);
+    global.pairingCodeResult = { error: e?.message || "فشل طلب الكود" };
+    global.pairingConnecting = false;
   }
 }
 
@@ -1238,6 +1280,14 @@ async function handleMessagesUpsert({ messages }) {
     prebuildContextCache();
   }
 
-  console.log("🟢 جاري الاتصال بواتساب...");
-  connectToWhatsApp();
+  // اتصال تلقائي فقط إذا كانت بيانات مصادقة موجودة
+  const hasAuth = fs.existsSync(AUTH_DIR) &&
+    fs.readdirSync(AUTH_DIR).filter(f => !f.startsWith(".")).length > 0;
+
+  if (hasAuth) {
+    console.log("🟢 بيانات مصادقة موجودة — جاري الاتصال...");
+    connectToWhatsApp();
+  } else {
+    console.log("ℹ️ لا توجد بيانات مصادقة — انتظر الربط من لوحة المالك");
+  }
 })();
