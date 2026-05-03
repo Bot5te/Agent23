@@ -801,8 +801,9 @@ app.post("/api/owner/broadcast", async (req, res) => {
       const useBtn = buttonType && buttonType !== "none";
       if (useBtn) {
         // بناء الزر حسب النوع
+        // open_webview يعمل مع الأرقام الشخصية — cta_url مخصص لـ Business API ويُغلق الاتصال
         const btnObj = buttonType === "url" && buttonUrl
-          ? { name: "cta_url", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "← اطلب الآن", url: buttonUrl, merchant_url: buttonUrl }) }
+          ? { name: "open_webview", buttonParamsJson: JSON.stringify({ title: buttonLabel || "اطلب الآن", link: { url: buttonUrl } }) }
           : { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "← أنا مهتم", id: "interested" }) };
 
         try {
@@ -832,10 +833,13 @@ app.post("/api/owner/broadcast", async (req, res) => {
           await sendInteractiveMessage(sock, jid, interactiveContent);
         } catch (btnErr) {
           console.log("⚠️ فشل إرسال الزر، fallback بدون زر:", btnErr?.message);
+          // للرابط: أُضيف الرابط داخل النص حتى يظل قابلاً للنقر
+          const fallbackText = (hasMessage ? message : "")
+            + (buttonType === "url" && buttonUrl ? "\n\n🔗 " + buttonUrl : "");
           if (hasImage) {
-            await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: hasMessage ? message : undefined });
+            await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: fallbackText.trim() || undefined });
           } else {
-            await sock.sendMessage(jid, { text: message });
+            await sock.sendMessage(jid, { text: fallbackText.trim() || " " });
           }
         }
       } else {
