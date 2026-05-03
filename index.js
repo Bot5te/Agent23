@@ -800,15 +800,21 @@ app.post("/api/owner/broadcast", async (req, res) => {
     try {
       const useBtn = buttonType && buttonType !== "none";
       if (useBtn) {
-        // بناء الزر حسب النوع
-        // open_webview يعمل مع الأرقام الشخصية — cta_url مخصص لـ Business API ويُغلق الاتصال
-        const btnObj = buttonType === "url" && buttonUrl
-          ? { name: "open_webview", buttonParamsJson: JSON.stringify({ title: buttonLabel || "اطلب الآن", link: { url: buttonUrl } }) }
-          : { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "← أنا مهتم", id: "interested" }) };
+        const isUrlBtn = buttonType === "url" && buttonUrl;
+        const btnObj = !isUrlBtn
+          ? { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "← أنا مهتم", id: "interested" }) }
+          : null;
 
         try {
           let interactiveContent;
-          if (hasImage) {
+          if (isUrlBtn) {
+            const urlText = `${hasMessage ? message : ""}${hasMessage ? "\n\n" : ""}🔗 ${buttonUrl}`;
+            if (hasImage) {
+              await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: urlText.trim() });
+            } else {
+              await sock.sendMessage(jid, { text: urlText.trim() });
+            }
+          } else if (hasImage) {
             // رفع الصورة أولاً ثم بناء interactiveMessage مع هيدر صورة حقيقي
             const uploaded = await prepareWAMessageMedia(
               { image: imgBuf },
@@ -817,7 +823,7 @@ app.post("/api/owner/broadcast", async (req, res) => {
             interactiveContent = {
               interactiveMessage: {
                 header: {
-                  imageMessage: uploaded.imageMessage, // nested — ليس spread
+                  imageMessage: uploaded.imageMessage,
                   hasMediaAttachment: true,
                 },
                 body: { text: hasMessage ? message : " " },
