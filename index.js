@@ -18,6 +18,17 @@ const P = require("pino");
 const Groq = require("groq-sdk");
 const { sendInteractiveMessage } = require("baileys_helper");
 const { prepareWAMessageMedia } = require("@whiskeysockets/baileys");
+const {
+  restoreDataFromGist,
+  restoreAuthFromGist,
+  initialPushToGist,
+  scheduleAuthSync,
+  clearGistAuth,
+  syncConfig,
+  syncContacts,
+  syncPaused,
+  syncKnowledge,
+} = require("./gist");
 
 // ==================== الإعدادات ====================
 
@@ -64,6 +75,7 @@ function loadConfig() {
 
 function saveConfig(cfg) {
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2), "utf-8");
+  syncConfig();
 }
 
 // ==================== جهات الاتصال ====================
@@ -96,6 +108,7 @@ function upsertContact(userId, name) {
     contacts.push({ jid, phone, name: name || phone, firstContact: now, lastContact: now });
   }
   fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
+  syncContacts();
 }
 
 // ==================== إدارة العملاء ====================
@@ -114,6 +127,7 @@ function loadPausedUsers() {
 function savePausedUsers() {
   try {
     fs.writeFileSync(PAUSED_USERS_FILE, JSON.stringify([...pausedUsers]), "utf-8");
+    syncPaused();
   } catch (e) {
     console.log("خطأ في حفظ paused_users:", e?.message);
   }
@@ -172,6 +186,7 @@ function loadKnowledgeData() {
 
 function saveKnowledgeData(data) {
   fs.writeFileSync(CUSTOM_KNOWLEDGE_FILE, JSON.stringify(data, null, 2), "utf-8");
+  syncKnowledge();
 }
 
 function loadCustomKnowledge() {
@@ -1001,6 +1016,7 @@ async function handleConnectionUpdate(update) {
         console.log("⚠️ تم تسجيل الخروج — حذف بيانات المصادقة");
         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
       }
+      clearGistAuth().catch(() => {});
       console.log("ℹ️ يجب الربط من جديد من لوحة المالك");
     } else if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
       reconnectAttempts++;
@@ -1029,6 +1045,7 @@ function registerLidHandler() {
             if (idx >= 0) {
               contacts[idx].phone = "+" + realNum;
               fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
+              syncContacts();
             }
           } catch (_) {}
         }
@@ -1039,7 +1056,8 @@ function registerLidHandler() {
 
 async function connectToWhatsApp() {
   try {
-    const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+    const { state, saveCreds: _saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+    const saveCreds = async () => { await _saveCreds(); scheduleAuthSync(AUTH_DIR); };
     let version;
     try {
       const latest = await fetchLatestBaileysVersion();
@@ -1082,7 +1100,8 @@ async function connectWithPairingCode(phone) {
   }
 
   try {
-    const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+    const { state, saveCreds: _saveCreds2 } = await useMultiFileAuthState(AUTH_DIR);
+    const saveCreds2 = async () => { await _saveCreds2(); scheduleAuthSync(AUTH_DIR); };
     let version;
     try {
       const latest = await fetchLatestBaileysVersion();
@@ -1104,7 +1123,7 @@ async function connectWithPairingCode(phone) {
       },
     });
 
-    sock.ev.on("creds.update", saveCreds);
+    sock.ev.on("creds.update", saveCreds2);
     sock.ev.on("messages.upsert", handleMessagesUpsert);
     registerLidHandler();
 
@@ -1152,6 +1171,7 @@ async function connectWithPairingCode(phone) {
         if (statusCode === 401 && fs.existsSync(AUTH_DIR)) {
           console.log("⚠️ تم تسجيل الخروج — حذف بيانات المصادقة");
           fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+          clearGistAuth().catch(() => {});
         }
 
         if (pairingSucceeded) {
@@ -1351,6 +1371,19 @@ async function handleMessagesUpsert({ messages }) {
   // إنشاء مجلد public إن لم يكن موجودًا
   if (!fs.existsSync("public")) fs.mkdirSync("public");
 
+  // ── مزامنة مع Gist ──
+  const restoredData = await restoreDataFromGist();
+  const restoredAuth = await restoreAuthFromGist(AUTH_DIR);
+
+  // إذا كان الـ Gist فارغاً (أول تشغيل) → ارفع الملفات المحلية الموجودة
+  if (restoredData === 0 || restoredAuth === 0) {
+    const localAuthHasFiles = fs.existsSync(AUTH_DIR) &&
+      fs.readdirSync(AUTH_DIR).filter(f => !f.startsWith(".") && f.endsWith(".json")).length > 0;
+    if (restoredData === 0 || (restoredAuth === 0 && localAuthHasFiles)) {
+      await initialPushToGist(restoredAuth === 0 && localAuthHasFiles ? AUTH_DIR : null);
+    }
+  }
+
   console.log("🔄 جاري تحميل بيانات الكورسات...");
   coursesData = await loadCourses();
 
@@ -1363,9 +1396,9 @@ async function handleMessagesUpsert({ messages }) {
     prebuildContextCache();
   }
 
-  // اتصال تلقائي فقط إذا كانت بيانات مصادقة موجودة
-  const hasAuth = fs.existsSync(AUTH_DIR) &&
-    fs.readdirSync(AUTH_DIR).filter(f => !f.startsWith(".")).length > 0;
+  // اتصال تلقائي إذا كانت بيانات مصادقة موجودة (محلياً أو مُستعادة من Gist)
+  const hasAuth = (fs.existsSync(AUTH_DIR) &&
+    fs.readdirSync(AUTH_DIR).filter(f => !f.startsWith(".")).length > 0) || restoredAuth;
 
   if (hasAuth) {
     console.log("🟢 بيانات مصادقة موجودة — جاري الاتصال...");
