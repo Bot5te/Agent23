@@ -103,11 +103,20 @@ async function restoreAuthFromGist(authDir) {
     const files = await fetchGist();
     if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
     let restored = 0;
+    const coreAuthFiles = new Set([
+      "creds.json",
+      "pre-key.json",
+      "session.json",
+      "app-state-sync-key.json",
+      "app-state-sync-version.json",
+      "app-state-sync-key-id.json",
+    ]);
     for (const [gistName, fileObj] of Object.entries(files)) {
       if (!gistName.startsWith("auth_")) continue;
       const content = fileObj?.content;
       if (!content || content.trim() === " " || content.trim() === "{}") continue;
       const localName = gistName.slice(5); // أزِل البادئة auth_
+      if (!coreAuthFiles.has(localName)) continue;
       try {
         JSON.parse(content);
         fs.writeFileSync(path.join(authDir, localName), content, "utf-8");
