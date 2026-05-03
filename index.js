@@ -101,11 +101,10 @@ function upsertContact(userId, name) {
   const idx      = contacts.findIndex(c => c.jid === jid);
   const now      = Date.now();
   if (idx >= 0) {
-    contacts[idx].lastContact = now;
     contacts[idx].phone = phone;
     if (name && name !== phone) contacts[idx].name = name;
   } else {
-    contacts.push({ jid, phone, name: name || phone, firstContact: now, lastContact: now });
+    contacts.push({ jid, phone, name: name || phone, firstContact: now });
   }
   fs.writeFileSync(CONTACTS_FILE, JSON.stringify(contacts, null, 2), "utf-8");
   syncContacts();
