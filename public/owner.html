@@ -196,6 +196,15 @@
     .img-upload-area:hover{border-color:var(--gold);background:var(--gold-s)}
     .img-upload-area.has-img{border-style:solid;border-color:rgba(245,197,24,.4);padding:8px}
 
+    .btn-type-row{display:flex;gap:8px;margin-bottom:4px}
+    .btn-type-opt{
+      flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;
+      background:var(--s2);color:var(--t2);font-size:12.5px;font-weight:600;
+      text-align:center;cursor:pointer;transition:all .18s;user-select:none;
+    }
+    .btn-type-opt:hover{border-color:rgba(245,197,24,.4);color:var(--text)}
+    .btn-type-opt.active{border-color:var(--gold);background:var(--gold-s);color:var(--gold)}
+
     .bc-progress{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;display:none;margin-top:4px}
     .bc-progress.show{display:block}
     .bc-pb{height:100%;background:var(--gold);border-radius:3px;width:0;transition:width .4s}
@@ -507,13 +516,19 @@
           </div>
         </div>
 
-        <div class="toggle-card" onclick="toggleButtons()">
-          <div class="tc-icon">👆</div>
-          <div class="tc-info">
-            <strong>زر "أنا مهتم"</strong>
-            <span>يظهر للمستلم زر "← أنا مهتم" أسفل الرسالة — يتطلب دعم واتساب للأزرار</span>
+        <div class="section-lbl">🔘 نوع الزر</div>
+        <div class="btn-type-row">
+          <div class="btn-type-opt active" id="bto-none"   onclick="setBtnType('none')">بدون زر</div>
+          <div class="btn-type-opt"        id="bto-reply"  onclick="setBtnType('reply')">← أنا مهتم</div>
+          <div class="btn-type-opt"        id="bto-url"    onclick="setBtnType('url')">🔗 رابط</div>
+        </div>
+        <div id="urlFieldWrap" style="display:none">
+          <div class="compose" style="border-radius:10px">
+            <input id="btnUrl"   type="url"  placeholder="https://..." style="width:100%;background:transparent;border:none;color:var(--text);padding:11px 14px;font-size:13px;font-family:inherit;outline:none" oninput="updatePreview()"/>
           </div>
-          <div class="sw" id="swBtn"></div>
+          <div class="compose" style="border-radius:10px;margin-top:8px">
+            <input id="btnLabel" type="text" placeholder="نص الزر (مثال: اطلب الآن)" style="width:100%;background:transparent;border:none;color:var(--text);padding:11px 14px;font-size:13px;font-family:inherit;outline:none" oninput="updatePreview()"/>
+          </div>
         </div>
 
         <div>
@@ -525,7 +540,7 @@
             </div>
             <div class="pv-bubble empty" id="pvMsg">اكتب رسالتك لترى المعاينة هنا...</div>
             <div class="pv-btns" id="pvBtns" style="display:none">
-              <div class="pv-btn">← أنا مهتم</div>
+              <div class="pv-btn" id="pvBtnLabel">← أنا مهتم</div>
             </div>
           </div>
         </div>
@@ -714,6 +729,7 @@
   let allContacts = [];
   let selectedJids = new Set();
   let withButtons  = false;
+  let btnType      = 'none'; // 'none' | 'reply' | 'url'
   let broadcastImgBase64 = null;
   let broadcastImgMime   = null;
 
@@ -928,10 +944,12 @@
   }
 
   /* ── BROADCAST ── */
-  function toggleButtons(){
-    withButtons=!withButtons;
-    $('swBtn').classList.toggle('on',withButtons);
-    $('pvBtns').style.display=withButtons?'flex':'none';
+  function setBtnType(type){
+    btnType=type;
+    ['none','reply','url'].forEach(t=>$('bto-'+t).classList.toggle('active',t===type));
+    $('urlFieldWrap').style.display = type==='url' ? 'flex' : 'none';
+    if(type==='url') $('urlFieldWrap').style.flexDirection='column';
+    updatePreview();
   }
 
   function updatePreview(){
@@ -940,12 +958,21 @@
     const pv=$('pvMsg');
     if(msg.trim()){pv.textContent=msg;pv.classList.remove('empty');}
     else{pv.textContent='اكتب رسالتك لترى المعاينة هنا...';pv.classList.add('empty');}
+    const showBtn = btnType!=='none';
+    $('pvBtns').style.display = showBtn ? 'flex' : 'none';
+    if(showBtn){
+      const lbl = btnType==='url'
+        ? ('🔗 '+($('btnLabel')?.value||'اطلب الآن'))
+        : '← أنا مهتم';
+      $('pvBtnLabel').textContent=lbl;
+    }
   }
 
   async function sendBroadcast(){
     const msg=$('bcMsg').value.trim();
     if(!msg && !broadcastImgBase64){showToast('⚠️ أضف نصاً أو صورة على الأقل');return;}
     if(!selectedJids.size){showToast('⚠️ اختر مستلماً واحداً على الأقل');return;}
+    if(btnType==='url' && !$('btnUrl').value.trim()){showToast('⚠️ أدخل رابط URL أولاً');return;}
     const btn=$('sendBtn');
     btn.disabled=true;
     btn.innerHTML='<span class="spin"></span><span>جاري الإرسال...</span>';
@@ -958,7 +985,10 @@
         ownerKey:OWN_KEY,
         message:msg||'',
         phones:[...selectedJids],
-        withButtons,
+        withButtons: btnType!=='none',
+        buttonType: btnType,
+        buttonUrl:   btnType==='url' ? $('btnUrl').value.trim()   : '',
+        buttonLabel: btnType==='url' ? ($('btnLabel').value.trim()||'اطلب الآن') : '',
       };
       if(broadcastImgBase64){
         body.imageBase64=broadcastImgBase64;
