@@ -801,20 +801,13 @@ app.post("/api/owner/broadcast", async (req, res) => {
       const useBtn = buttonType && buttonType !== "none";
       if (useBtn) {
         const isUrlBtn = buttonType === "url" && buttonUrl;
-        const btnObj = !isUrlBtn
-          ? { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "← أنا مهتم", id: "interested" }) }
-          : null;
+        const btnObj = isUrlBtn
+          ? { name: "cta_url", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "اطلب الآن", url: buttonUrl }) }
+          : { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: buttonLabel || "← أنا مهتم", id: "interested" }) };
 
         try {
           let interactiveContent;
-          if (isUrlBtn) {
-            const urlText = `${hasMessage ? message : ""}${hasMessage ? "\n\n" : ""}🔗 ${buttonUrl}`;
-            if (hasImage) {
-              await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: urlText.trim() });
-            } else {
-              await sock.sendMessage(jid, { text: urlText.trim() });
-            }
-          } else if (hasImage) {
+          if (hasImage) {
             // رفع الصورة أولاً ثم بناء interactiveMessage مع هيدر صورة حقيقي
             const uploaded = await prepareWAMessageMedia(
               { image: imgBuf },
@@ -839,7 +832,6 @@ app.post("/api/owner/broadcast", async (req, res) => {
           await sendInteractiveMessage(sock, jid, interactiveContent);
         } catch (btnErr) {
           console.log("⚠️ فشل إرسال الزر، fallback بدون زر:", btnErr?.message);
-          // للرابط: أُضيف الرابط داخل النص حتى يظل قابلاً للنقر
           const fallbackText = (hasMessage ? message : "")
             + (buttonType === "url" && buttonUrl ? "\n\n🔗 " + buttonUrl : "");
           if (hasImage) {
