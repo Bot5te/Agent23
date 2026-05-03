@@ -138,8 +138,17 @@ async function initialPushToGist(authDir) {
 
     // ملفات المصادقة
     if (authDir && fs.existsSync(authDir)) {
+      const coreAuthFiles = new Set([
+        "creds.json",
+        "pre-key.json",
+        "session.json",
+        "app-state-sync-key.json",
+        "app-state-sync-version.json",
+        "app-state-sync-key-id.json",
+      ]);
       const authFiles = fs.readdirSync(authDir).filter(f => !f.startsWith(".") && f.endsWith(".json"));
       for (const f of authFiles) {
+        if (!coreAuthFiles.has(f)) continue;
         const content = fs.readFileSync(path.join(authDir, f), "utf-8");
         if (content && content.trim()) gistFiles[`auth_${f}`] = content;
       }
@@ -167,7 +176,15 @@ function scheduleAuthSync(authDir) {
 async function syncAuthToGist(authDir) {
   try {
     if (!fs.existsSync(authDir)) return;
-    const files = fs.readdirSync(authDir).filter(f => !f.startsWith(".") && f.endsWith(".json"));
+    const coreAuthFiles = new Set([
+      "creds.json",
+      "pre-key.json",
+      "session.json",
+      "app-state-sync-key.json",
+      "app-state-sync-version.json",
+      "app-state-sync-key-id.json",
+    ]);
+    const files = fs.readdirSync(authDir).filter(f => !f.startsWith(".") && f.endsWith(".json") && coreAuthFiles.has(f));
     if (!files.length) return;
     const gistFiles = {};
     for (const f of files) {
