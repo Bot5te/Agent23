@@ -17,6 +17,7 @@ const axios = require("axios");
 const P = require("pino");
 const Groq = require("groq-sdk");
 const { sendInteractiveMessage } = require("baileys_helper");
+const { prepareWAMessageMedia } = require("@whiskeysockets/baileys");
 
 // ==================== الإعدادات ====================
 
@@ -799,22 +800,41 @@ app.post("/api/owner/broadcast", async (req, res) => {
     try {
       if (withButtons) {
         // إرسال بزر "أنا مهتم" عبر nativeFlowMessage
-        const interactiveContent = {
-          text: hasMessage ? message : " ",
-          interactiveButtons: [
-            {
-              name: "quick_reply",
-              buttonParamsJson: JSON.stringify({ display_text: "← أنا مهتم", id: "interested" }),
-            },
-          ],
-        };
-        if (hasImage) {
-          interactiveContent.image = imgBuf;
-          interactiveContent.mimetype = imageMime;
-        }
         try {
+          let interactiveContent;
+          if (hasImage) {
+            // رفع الصورة للحصول على imageMessage مشفّر بمفاتيح واتساب
+            const uploaded = await prepareWAMessageMedia(
+              { image: imgBuf },
+              { upload: sock.waUploadToServer }
+            );
+            // بناء interactiveMessage يدوياً مع هيدر صورة حقيقي
+            interactiveContent = {
+              interactiveMessage: {
+                header: {
+                  ...uploaded.imageMessage,
+                  hasMediaAttachment: true,
+                },
+                body: { text: hasMessage ? message : " " },
+                nativeFlowMessage: {
+                  buttons: [
+                    { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "← أنا مهتم", id: "interested" }) },
+                  ],
+                },
+              },
+            };
+          } else {
+            // نص فقط مع زر
+            interactiveContent = {
+              text: hasMessage ? message : " ",
+              interactiveButtons: [
+                { name: "quick_reply", buttonParamsJson: JSON.stringify({ display_text: "← أنا مهتم", id: "interested" }) },
+              ],
+            };
+          }
           await sendInteractiveMessage(sock, jid, interactiveContent);
-        } catch (_) {
+        } catch (btnErr) {
+          console.log("⚠️ فشل إرسال الزر، fallback بدون زر:", btnErr?.message);
           // fallback بدون أزرار
           if (hasImage) {
             await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: hasMessage ? message : undefined });
