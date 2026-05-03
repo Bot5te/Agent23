@@ -16,6 +16,7 @@ const os = require("os");
 const axios = require("axios");
 const P = require("pino");
 const Groq = require("groq-sdk");
+const { sendInteractiveMessage } = require("baileys_helper");
 
 // ==================== الإعدادات ====================
 
@@ -796,44 +797,35 @@ app.post("/api/owner/broadcast", async (req, res) => {
       ? identifier
       : identifier.replace(/\D/g, "") + "@s.whatsapp.net";
     try {
-      if (hasImage) {
-        // صورة (مع كابشن اختياري) + زر "أنا مهتم" اختياري
-        const imgPayload = {
-          image: imgBuf,
-          mimetype: imageMime,
-          caption: hasMessage ? message : undefined,
+      if (withButtons) {
+        // إرسال بزر "أنا مهتم" عبر nativeFlowMessage
+        const interactiveContent = {
+          text: hasMessage ? message : " ",
+          interactiveButtons: [
+            {
+              name: "quick_reply",
+              buttonParamsJson: JSON.stringify({ display_text: "← أنا مهتم", id: "interested" }),
+            },
+          ],
         };
-        if (withButtons) {
-          try {
-            await sock.sendMessage(jid, {
-              ...imgPayload,
-              buttons: [
-                { buttonId: "interested", buttonText: { displayText: "← أنا مهتم" }, type: 1 },
-              ],
-              footer: "",
-              headerType: 4,
-            });
-          } catch (_) {
-            // fallback: صورة بدون أزرار
-            await sock.sendMessage(jid, imgPayload);
-          }
-        } else {
-          await sock.sendMessage(jid, imgPayload);
+        if (hasImage) {
+          interactiveContent.image = imgBuf;
+          interactiveContent.mimetype = imageMime;
         }
-      } else {
-        // نص فقط + زر اختياري
-        if (withButtons) {
-          try {
-            await sock.sendMessage(jid, {
-              text: message,
-              buttons: [
-                { buttonId: "interested", buttonText: { displayText: "← أنا مهتم" }, type: 1 },
-              ],
-              headerType: 1,
-            });
-          } catch (_) {
+        try {
+          await sendInteractiveMessage(sock, jid, interactiveContent);
+        } catch (_) {
+          // fallback بدون أزرار
+          if (hasImage) {
+            await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: hasMessage ? message : undefined });
+          } else {
             await sock.sendMessage(jid, { text: message });
           }
+        }
+      } else {
+        // إرسال بدون أزرار
+        if (hasImage) {
+          await sock.sendMessage(jid, { image: imgBuf, mimetype: imageMime, caption: hasMessage ? message : undefined });
         } else {
           await sock.sendMessage(jid, { text: message });
         }
