@@ -741,9 +741,9 @@ app.get("/api/owner/stats", (req, res) => {
   const ms = { day: 86400000, week: 604800000, month: 2592000000 };
   res.json({
     total:     contacts.length,
-    today:     contacts.filter(c => now - c.lastContact < ms.day).length,
-    thisWeek:  contacts.filter(c => now - c.lastContact < ms.week).length,
-    thisMonth: contacts.filter(c => now - c.lastContact < ms.month).length,
+    today:     contacts.filter(c => now - (c.firstContact || 0) < ms.day).length,
+    thisWeek:  contacts.filter(c => now - (c.firstContact || 0) < ms.week).length,
+    thisMonth: contacts.filter(c => now - (c.firstContact || 0) < ms.month).length,
     botConnected: !!sock,
     totalSessions: clientsData.size,
     pausedSessions: pausedUsers.size,
